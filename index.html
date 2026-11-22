@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#142541">
+  <title>ひらがな探偵｜オンライン共同カードゲーム</title>
+  <style>
+    :root{--navy:#142541;--ink:#1c2c48;--muted:#687992;--blue:#2e67d1;--pale:#eef4ff;--paper:#fbfcff;--line:#dfe7f3;--green:#0f8b72;--rose:#e6a3b4}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;color:var(--ink);background:#f4f7fb}
+    header{background:var(--navy);color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    header h1{font-size:23px;margin:0;letter-spacing:.03em}header p{margin:3px 0 0;color:#aec3e4;font-size:12px}
+    .status{display:flex;gap:8px;align-items:center;font-size:12px;font-weight:700;padding:7px 11px;border:1px solid #48607f;border-radius:99px;color:#d3e3ff}
+    .dot{width:8px;height:8px;display:inline-block;border-radius:50%;background:#eab95b}.dot.online{background:#49dcb4}
+    main{max-width:1310px;margin:0 auto;padding:22px}
+    .toolbar{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 17px;box-shadow:0 3px 16px #19395b08;display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+    label{font-size:12px;font-weight:800;color:#62718a;display:flex;align-items:center;gap:7px}
+    select,input,textarea{font:inherit;border:1px solid #ced8e8;border-radius:9px;padding:10px 11px;background:white;color:var(--ink)}select{max-width:250px}select:focus,input:focus,textarea:focus{outline:3px solid #bad2ff}
+    button{font:inherit;font-size:13px;font-weight:800;border:1px solid #d1dcf0;color:var(--ink);background:white;padding:10px 14px;cursor:pointer;border-radius:10px;transition:background .12s, transform .12s}button:hover{background:#eaf1ff}button:active{transform:scale(.97)}button.primary{background:#2462cf;color:white;border-color:#2462cf}button.primary:hover{background:#164eae}button.dark{background:#1a3153;border-color:#1a3153;color:white}button.solved{background:#e6f7f1;border-color:#b6e5d4;color:#0b765e}button:disabled{opacity:.4;cursor:not-allowed}
+    .right{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+    .intro{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 10px;flex-wrap:wrap}
+    .intro strong{font-size:18px}.intro small{font-size:13px;color:var(--muted)}
+    .score{background:#e4f6ed;color:#087254;border-radius:99px;font-size:13px;font-weight:800;padding:8px 14px;white-space:nowrap}
+    .board-scroll{width:100%;overflow-x:auto;overflow-y:hidden;border-radius:16px;box-shadow:0 5px 22px #1b38561b;border:1px solid #cedbf1;background:#fff}
+    #board{display:grid;grid-template-columns:minmax(0,4fr) minmax(116px,1fr);min-height:350px;user-select:none}
+    #sheet{display:grid;grid-template-columns:repeat(var(--cols,5),minmax(0,1fr));align-content:start;gap:8px;padding:16px;background:#f7f9fc}
+    .play-area{background:#f7f9fc;display:flex;flex-direction:column;min-width:0}
+    #outside{flex:1;display:flex;align-content:flex-start;align-items:flex-start;flex-wrap:wrap;gap:10px 14px;min-height:92px;padding:12px 16px 20px}
+    #outside .card{margin-top:var(--dy);margin-left:var(--dx);transform:rotate(var(--tilt));max-width:100%}
+    .slot{position:relative;height:100px;border:1px solid #bac9d9;border-radius:9px;background:white;display:grid;place-items:end center;padding-bottom:6px}
+    #sheet.correct .slot{background:#ffead4}
+    .number{position:absolute;top:4px;left:7px;font-size:15px;font-weight:800;color:#445770}
+    #found-zone{background:#e8f6ef;border-left:2px dashed #8bbba8;padding:14px 8px;color:#16634d;text-align:center}
+    .zone-title{font-weight:850}.tray{display:flex;justify-content:center;align-content:flex-start;gap:5px;flex-wrap:wrap;margin-top:12px}
+    .card{display:grid;place-items:center;width:min(68px,88%);height:65px;border-radius:10px;background:var(--fill);border:1px solid #172e462a;border-bottom-width:3px;color:#182a40;cursor:grab;touch-action:none;box-shadow:0 2px 4px #172e4614;padding:0}
+    .card:hover{background:var(--fill)}.glyph{font-family:"UD デジタル 教科書体 N-B","UD Digi Kyokasho N-B","UD デジタル 教科書体 NK-B","UD Digi Kyokasho NK-B","UD デジタル 教科書体 NP-B","UD Digi Kyokasho NP-B","UDデジタル教科書体 B","UD デジタル 教科書体 N-R","UD Digi Kyokasho N-R","UD デジタル 教科書体 NK-R","UD Digi Kyokasho NK-R","UD デジタル 教科書体 NP-R","UD Digi Kyokasho NP-R","UDデジタル教科書体 R","UD Digi Kyokasho R","Klee One",Klee,"Hiragino Mincho ProN",serif;font-weight:700;font-size:38px;line-height:1}.card.flipped,.card.flipped:hover{background:#d9e5f5}.tray .card{width:40px;height:42px}.tray .glyph{font-size:27px}
+    .card.drag-source{opacity:.35}.ghost{position:fixed;z-index:20;pointer-events:none;transform:translate(-50%,-50%);opacity:.9}.target{outline:3px solid #3172c3;outline-offset:-3px}
+    @media(max-width:700px){#board{grid-template-columns:minmax(0,1fr) 80px}#sheet{grid-template-columns:repeat(3,minmax(0,1fr));padding:6px;gap:4px}.slot{height:81px}.card{height:52px}.glyph{font-size:31px}.number{font-size:13px}.tray .card{width:44px}}
+    .help{margin-top:12px;display:grid;grid-template-columns:1fr;gap:12px}
+    .panel{background:white;border:1px solid var(--line);border-radius:13px;padding:14px 17px;line-height:1.9;font-size:13px}
+    .panel strong{font-size:14px}.panel p{margin:4px 0}.panel .hint{color:#718199}.panel kbd{background:#f0f3f8;border:1px solid #d6deea;border-radius:5px;padding:2px 5px;font-family:inherit}
+    .notice{color:#5d6f88;font-size:12px;margin:17px 3px 5px;line-height:1.7}
+    dialog{border:none;border-radius:18px;padding:0;max-width:630px;width:calc(100vw - 30px);box-shadow:0 20px 80px #09182c66;color:var(--ink)}dialog::backdrop{background:#061526a8}
+    .modal-header{background:#edf3ff;padding:20px 24px;border-bottom:1px solid #dbe5f4}.modal-header h2{margin:0 0 5px;font-size:20px}.modal-header p{margin:0;color:#63748c;font-size:13px}
+    .modal-body{padding:22px 24px}.modal-body textarea{width:100%;min-height:150px;resize:vertical;margin-top:7px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.6}
+    .modal-body p{font-size:13px;line-height:1.85;color:#4b5d76}.modal-body code{font-size:12px;background:#f0f3f8;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}.error{color:#bb3655!important;font-weight:700}
+    #invitebox{width:100%;padding:10px;font-size:12px;overflow-wrap:anywhere;background:#edf4ff;border:1px dashed #9ebaf0;border-radius:8px;margin:7px 0 12px;word-break:break-all;display:none}
+    #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(15px);opacity:0;transition:.2s;color:white;background:#1b3152;padding:12px 17px;border-radius:12px;box-shadow:0 12px 30px #0b20453d;z-index:100;font-size:13px;pointer-events:none}#toast.show{opacity:1;transform:translateX(-50%)}
+    @media(max-width:850px){main{padding:12px}.toolbar{gap:7px;padding:12px}.right{margin-left:0}.help{grid-template-columns:1fr}header{padding:14px}header h1{font-size:20px}.intro strong{font-size:15px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+    #picture-form{flex:1 0 100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    #picture-url{flex:1;min-width:9em;font-size:14px}
+    .intro{display:grid;grid-template-columns:minmax(0,1fr) clamp(112px,22%,240px);align-items:center}
+    .score{justify-self:start}
+    .word-picture{grid-column:2;grid-row:1 / 3;width:100%;aspect-ratio:1.6;display:grid;place-items:center;overflow:hidden;border:2px dotted #929aa3;border-radius:14px;background:white;color:var(--muted);font-size:13px;text-align:center}
+    .word-picture img{display:block;width:100%;height:100%;min-height:0;object-fit:contain}
+    .card.multi{container-type:inline-size;width:min(122px,92%)}
+    .tray .card.multi{width:min(110px,100%)}
+    .card.multi .glyph{white-space:nowrap;font-size:min(32px,calc(94cqw / var(--letters)));line-height:1.15}
+    #word-hint{font-size:14px;font-weight:500;color:#6b7280;margin:4px 0 8px}
+  </style>
+</head>
+<body>
+<header>
+  <div><h1>🔎 ひらがな探偵</h1><p>見つける・動かす・覚える｜先生と生徒で同じボード</p></div>
+  <div class="status"><span class="dot" id="status-dot"></span><span id="status">ローカル練習モード</span></div>
+</header>
+<main>
+  <div class="toolbar">
+    <label>文字の種類 <select id="script"><option value="hira">ひらがな</option><option value="kata">カタカナ</option></select></label>
+    <label>出題範囲
+      <select id="group">
+        <option value="ak">第2回｜あ行・か行</option>
+        <option value="st">第3回｜さ行・た行</option>
+        <option value="nh">第4回｜な行・は行</option>
+        <option value="my">第5回｜ま行・や行</option>
+        <option value="rw">第6回｜ら行・わ行・を・ん</option>
+        <option value="start20">復習｜あ〜た行</option>
+        <option value="start30">復習｜あ〜は行</option>
+        <option value="last21">復習｜は〜わ行・を・ん</option>
+        <option value="all">総復習｜清音46文字</option>
+        <option value="voiced">濁音・半濁音</option>
+        <option value="glide">拗音</option>
+        <option value="long">長音</option>
+        <option value="double">促音</option>
+
+      </select>
+    </label>
+    <label>カード枚数
+      <select id="count"><option value="8">8枚</option><option value="10" selected>10枚</option><option value="12">12枚</option><option value="13" hidden>13枚</option><option value="16">16枚</option><option value="20">20枚</option><option value="46">最大46枚</option></select>
+    </label>
+    <label>台紙のマス数 <select id="slots"><option value="1">1マス</option><option value="2">2マス</option><option value="3">3マス</option><option value="4">4マス</option><option value="5" selected>5マス</option><option value="6">6マス</option><option value="7">7マス</option></select></label>
+    <button id="shuffle" title="同じ文字をランダムに再配置">🔀 シャッフル</button>
+    <button id="all-open">👁 全部表に</button>
+    <button id="all-hide">🙈 全部裏に</button>
+    <button id="reset">カード全交換</button>
+    <div class="right"><button id="room-btn" class="dark">🌐 共同プレイ</button><button id="invite-btn" class="primary" disabled>招待URLをコピー</button></div>
+    <form id="picture-form">
+      <label for="picture-url">画像URL</label>
+      <input id="picture-url" type="url" placeholder="https://…" aria-label="単語の画像URL">
+      <button type="submit">画像を表示</button><button id="picture-clear" type="button">クリア</button>
+    </form>
+  </div>
+  <div class="intro">
+    <div><strong>英語をヒントに、単語を作りましょう。</strong><p id="word-hint" lang="en" aria-live="polite"></p><small>マスの外も探してみましょう。カードはドラッグで移動でき、別のカードがあるマスに置くと入れ替わります。ダブルクリック／ダブルタップで裏返せます。</small></div>
+    <div class="word-picture" id="picture" aria-live="polite"><span>単語の画像</span></div>
+    <div class="score" id="score">テーブル 0 / 10</div>
+  </div>
+  <div class="board-scroll"><div id="board"><div class="play-area"><div id="sheet" aria-label="番号付きの台紙"></div><div id="outside" data-slot="-1" role="group" aria-label="マスの外"></div></div><div id="found-zone"><div class="zone-title">テーブル</div><div class="tray"></div></div></div></div>
+  <div class="help">
+    <div class="panel"><strong>🎲 ゲームの進め方</strong><p>英語の意味に合うカードを探し、1番のマスから順に並べます。「カード全交換」で次の問題に進めます。</p><p class="hint">応用：「文字を裏返す」「先生がわざと間違える」「単語になるように並べる」などにも使えます。</p></div>
+  </div>
+  <p class="notice">※ 教材の清音46文字を元にした独立した試作アプリです。URLを知っている人は共同編集できる設計です。個人情報や授業記録を入力・保存しないでください。</p>
+</main>
+<dialog id="room-modal">
+  <div class="modal-header"><h2>🌐 共同プレイの準備</h2><p>Firebaseを1回設定すると、先生と生徒が同じカードを操作できます。</p></div>
+  <div class="modal-body">
+    <p><strong>① FirebaseのWebアプリ設定（JSON）を貼り付ける</strong><br>FirebaseコンソールでWebアプリを追加し、表示される <code>firebaseConfig</code> の中身を貼ります。<code>databaseURL</code> が必要です。詳しくは同梱の「はじめに.txt」を参照してください。</p>
+    <textarea id="config-input" placeholder='{"apiKey":"...","authDomain":"...firebaseapp.com","databaseURL":"https://...firebasedatabase.app","projectId":"...","appId":"..."}' spellcheck="false"></textarea>
+    <p class="hint">設定値はブラウザ内に保存され、招待URLにも含まれます。FirebaseのWeb設定値は秘密鍵ではありませんが、アクセス権はFirebaseのセキュリティルールで必ず制限してください。</p>
+    <p id="room-error" class="error" aria-live="polite"></p>
+    <div id="invitebox"></div>
+    <div class="modal-actions"><button id="close-modal">閉じる</button><button id="save-config">設定を保存</button><button id="create-room" class="primary">新しい共有ルームを作成</button></div>
+  </div>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script type="module">
+  const CHAR_GROUPS = {
+    ak:'あいうえおかきくけこ', st:'さしすせそたちつてと', nh:'なにぬねのはひふへほ',
+    my:'まみむめもやゆよ', rw:'らりるれろわをん',
+    start20:'あいうえおかきくけこさしすせそたちつてと',
+    start30:'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほ',
+    last21:'はひふへほまみむめもやゆよらりるれろわをん',
+    all:'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'
+  };
+  const $ = id => document.getElementById(id);
+  let state = null, app=null, db=null, auth=null, dbOps=null, roomId=null, unsubscribe=null, firebaseConfig=null;
+  let localDrag=null, selectedId=null, syncing=false, lastSend=0, toastTimer=null;
+  const cardsNodes = new Map();
+  const b64enc = obj => btoa(JSON.stringify(obj)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+  const b64dec = str => JSON.parse(atob(str.replaceAll('-','+').replaceAll('_','/')));
+  const clon = obj => JSON.parse(JSON.stringify(obj));
+  function toast(msg){const n=$('toast');n.textContent=msg;n.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.classList.remove('show'),2700);}
+  function safeRandomId(){const b=new Uint8Array(18);crypto.getRandomValues(b);return Array.from(b, n=>n.toString(16).padStart(2,'0')).join('');}
+  function shuffled(a){const out=[...a];for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]];}return out;}
+  const rows=['あいうえお','かきくけこ','さしすせそ','たちつてと','なにぬねの','はひふへほ','まみむめも','やゆよ','らりるれろ','わを','ん'];
+  const colors=['#ffcfc9','#c9e4ff','#ffe49e','#d3edbc','#e6d4fa','#ffd7ac','#bfece5','#f6d1e7','#d3dafb','#e5edab','#d9e1e7'];
+  const kata = text=>text.replace(/[ぁ-ゖ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+96));
+  const kanaSounds={
+    voiced:[...'がぎぐげござじずぜぞだぢづでどばびぶべぼ'],
+    semi:[...'ぱぴぷぺぽ'],
+    glide:[...'きしちにひみりぎじびぴ'].flatMap(base=>[...'ゃゅょ'].map(small=>base+small))
+  };
+  // Each entry pairs the reading with the only clue shown to the learner.
+  const vocabulary={
+    "ak": "あお|blue;あか|red;いえ|house;いけ|pond;えき|station;かお|face;こえ|voice;おく|to put down;きく|to listen;かく|to write;あう|to meet;いく|to go;あかい|red (adjective);あおい|blue (adjective);おおい|numerous;おおきい|big;きかい|machine;くうこう|airport;こうこう|high school;かいけい|bill at a restaurant",
+    "st": "すし|sushi;そと|outside;した|below;ちち|my father;つち|soil;たつ|to stand up;とし|age;てつ|iron;としした|younger in age",
+    "nh": "はな|flower;はは|my mother;ふね|boat;ほね|bone;ほほ|cheek;ぬの|cloth;ははのひ|Mother’s Day",
+    "my": "やま|mountain;ゆめ|dream;みみ|ear;もも|peach;まめ|bean;やむ|to stop (of rain);もむ|to rub",
+    "rw": "わん|Japanese soup bowl;わる|to split;わり|proportion;わら|straw;われる|to break into pieces",
+    "review": "いぬ|dog;ねこ|cat;いす|chair;かさ|umbrella;ほん|book;みせ|shop;あさ|morning;なつ|summer;あした|tomorrow;あなた|you;わたし|I;となり|next door;ちかく|nearby;いなか|countryside;くすり|medicine;さかな|fish;てんき|weather;なまえ|name;くるま|car;おかね|money;あたま|head;おなか|stomach;せなか|back (body part);はさみ|scissors;つくえ|desk;とけい|clock;きもの|kimono;やさい|vegetables;からい|spicy;あつい|hot (weather);さむい|cold (weather);すこし|a little;いつも|always;あまい|sweet;おきる|to get up;たてる|to build;あるく|to walk;おしえる|to teach;はたらく|to work;こたえる|to answer;はたち|twenty years old;あいさつ|greeting;えんそく|school excursion;かいもの|shopping;くつした|socks;ちかてつ|subway;しんせつ|kind;すいとう|water bottle;せいかつ|daily life;たいせつ|important;たいへん|very difficult;たてもの|building;てんいん|shop assistant;あたらしい|new;あたたかい|warm;おもしろい|interesting;つまらない|boring;おくりもの|gift;わすれもの|something left behind;おとしもの|lost item;おとこのこ|boy;おんなのこ|girl;おとこのひと|man;おんなのひと|woman;ひるやすみ|lunch break;なつやすみ|summer vacation;ふゆやすみ|winter vacation;はるやすみ|spring vacation;けいさつかん|police officer;てんきよほう|weather forecast;しんかんせん|bullet train;せんたくもの|laundry;こうこうせい|high school student;おまわりさん|police officer on patrol;ていきけん|commuter pass;こうさてん|intersection;いもうと|younger sister;おとうと|younger brother;うるさい|noisy;やわらかい|soft;ふつか|second day of the month",
+    "voiced": "みず|water;かぎ|key;ぶた|pig;ぱん|bread;かばん|bag;たまご|egg;りんご|apple;めがね|glasses;かぞく|family;でんわ|telephone;じかん|time;ごはん|cooked rice;げんき|healthy;さんぽ|a walk;えんぴつ|pencil;くだもの|fruit;てぶくろ|gloves;だいがく|university;どうぶつ|animal;ばんごう|number;ともだち|friend;にんげん|human being;おべんとう|boxed lunch;れいぞうこ|refrigerator;だいがくせい|university student;どうぶつえん|zoo;でんわばんごう|telephone number",
+    "glide": "おちゃ|tea;きゃく|guest;しゃしん|photograph;でんしゃ|train;かいしゃ|company;いしゃ|doctor;じしょ|dictionary;ちゃわん|rice bowl;やきゅう|baseball;りょこう|travel;じてんしゃ|bicycle;びょういん|hospital;びょうき|illness;じどうしゃ|automobile;しゅくだい|homework;きょうしつ|classroom;きょうだい|siblings;じゅぎょう|class (lesson);としょかん|library;きょうかしょ|textbook;ちゅうがく|junior high school;りゅうがく|study abroad;ゆうびんきょく|post office;ちゅうしゃじょう|parking lot;りゅうがくせい|international student;しょうがくせい|elementary school student;ちゅうがくせい|junior high school student;かいがいりょこう|overseas travel",
+    "long": "きのう|yesterday;くうき|air;えいご|English language;えいが|movie;ぼうし|hat;とおい|far;こおり|ice;おおい|numerous;せんせい|teacher;がくせい|student;こうえん|park;くうこう|airport;すうがく|mathematics;けいたい|mobile phone;ひこうき|airplane;おとうさん|father;おかあさん|mother;おにいさん|older brother;おねえさん|older sister;おばあさん|grandmother;おじいさん|grandfather;れいぞうこ|refrigerator;けいさつかん|police officer;こうこうせい|high school student;てんきよほう|weather forecast;でんわばんごう|telephone number",
+    "double": "きって|postage stamp;きっぷ|ticket;ざっし|magazine;こっち|this way;そっち|that way;もっと|more;あさって|day after tomorrow;がっこう|school;にっき|diary;せっけん|soap;けっこん|marriage;しっぱい|failure;りっぱ|splendid;いっぱい|full;ゆっくり|slowly;はっきり|clearly;びっくり|surprise;きっさてん|coffee shop;しゅっぱつ|departure;ひっこし|moving house;まっすぐ|straight ahead;きっぷうりば|ticket counter",
+    "kataLong": "けーき|cake;こーと|coat;のーと|notebook;ちーず|cheese;ぷーる|swimming pool;こーひー|coffee;すーぱー|supermarket;せーたー|sweater;たくしー|taxi;てーぶる|table;でぱーと|department store;あぱーと|apartment building;すかーと|skirt;しゃわー|shower;ぼーるぺん|ballpoint pen;えれべーたー|elevator;かれーらいす|curry rice;えすかれーたー|escalator;あいすくりーむ|ice cream",
+    "kataDouble": "べっど|bed;かっぷ|cup;こっぷ|drinking glass;ばっぐ|bag;まっち|matchstick;こっく|cook (profession);ぽけっと|pocket;ちけっと|ticket;すりっぱ|slippers;きっちん|kitchen;さっかー|soccer;せっと|set;すいっち|switch;ろぼっと|robot;ねっくれす|necklace;さんどいっち|sandwich;いんたーねっと|internet"
+};
+  const fixedCounts={voiced:12,glide:13};
+  const plain=[...CHAR_GROUPS.all], marked=[...kanaSounds.voiced,...kanaSounds.semi];
+  function questions(group,script){
+    let entries=vocabulary[group];
+    if(!entries){
+      entries=['ak','st','nh','my','rw','review'].map(key=>vocabulary[key]).join(';');
+    }
+    if(script==='kata'&&group==='long')entries=vocabulary.kataLong;
+    if(script==='kata'&&group==='double')entries=vocabulary.kataDouble;
+    return entries.split(';').map(pair=>pair.split('|')).filter(([word])=>
+      !CHAR_GROUPS[group]||[...word].every(ch=>CHAR_GROUPS[group].includes(ch)));
+  }
+  function fill(required,pool,size){
+    const result=[...required];
+    for(const candidate of shuffled(pool)){
+      if(result.length>=size)break;
+      if(!result.includes(candidate))result.push(candidate);
+    }
+    while(result.length<size)result.push(pool[Math.floor(Math.random()*pool.length)]);
+    return result;
+  }
+  const groupLabels=Array.from($('group').options,opt=>opt.textContent);
+  function generate(group='ak',count=10,script=state?.script??'hira'){
+    if(group==='semi')group='voiced';
+    const options=questions(group,script);
+    const alternatives=options.filter(([,en])=>en!==state?.hint);
+    const buckets=new Map();
+    for(const [word,hint] of alternatives.length?alternatives:options){
+      const tokens=group==='glide'?word.match(/.[ゃゅょ]?/gu):[...word];
+      if(!buckets.has(tokens.length))buckets.set(tokens.length,[]);
+      buckets.get(tokens.length).push({word,hint,tokens});
+    }
+    const weights=[0,0,8,36,36,10,6,4];
+    let draw=Math.random()*Array.from(buckets.keys()).reduce((sum,n)=>sum+weights[n],0);
+    let bucket;
+    for(const [n,items] of buckets){
+      bucket=items;
+      draw-=weights[n];
+      if(draw<0)break;
+    }
+    const {word,hint,tokens}=bucket[Math.floor(Math.random()*bucket.length)];
+    const deck=[...tokens];
+    if(group==='long'){
+      for(const ch of script==='kata'?['ー']:['い','う'])if(!deck.includes(ch))deck.push(ch);
+    }
+    let all;
+    if(group==='voiced'||group==='glide'){
+      const complex=group==='glide'?kanaSounds.glide:marked;
+      const target=deck.filter(ch=>complex.includes(ch));
+      const other=deck.filter(ch=>!complex.includes(ch));
+      const pools=group==='glide'?[plain,kanaSounds.voiced,kanaSounds.semi]:[plain];
+      // Represent each requested sound family among the distractors as needed.
+      for(const pool of group==='glide'?pools:[kanaSounds.voiced,kanaSounds.semi]){
+        const side=group==='voiced'?target:other;
+        if(!side.some(ch=>pool.includes(ch)))side.push(shuffled(pool)[0]);
+      }
+      all=[...fill(target,complex,6),...fill(other,pools.flat(),fixedCounts[group]-6)];
+    }else{
+      const pool=CHAR_GROUPS[group]?[...CHAR_GROUPS[group]]:[...plain,...marked];
+      all=fill(deck,pool,Math.min(count,CHAR_GROUPS[group]?pool.length:count));
+    }
+    const slots=tokens.length;
+    const cards={};
+    const deal=shuffled(all);
+    if(tokens.every((ch,i)=>deal[i]===ch)){
+      const swap=deal.findIndex(ch=>ch!==deal[0]);
+      if(swap>0)[deal[0],deal[swap]]=[deal[swap],deal[0]];
+    }
+    deal.forEach((ch,i)=>cards['c'+i]={ch:script==='kata'?kata(ch):ch,slot:i<slots?i+1:-1,flipped:false});
+    return {group,count,slots,script,hint,answer:script==='kata'?kata(word):word,cards,imageUrl:state?.imageUrl||'',version:3};
+  }
+  function normalize(data){
+    if(data.version===3)return data;
+    if(data.version!==2){
+    const entries=Object.values(data.cards).sort((a,b)=>a.y-b.y||a.x-b.x);
+    let n=0;
+    for(const c of entries){c.slot=c.x>=78?0:++n;delete c.x;delete c.y;}
+    }
+    data.slots=5;
+    for(const c of Object.values(data.cards))if(c.slot>data.slots)c.slot=-1;
+    data.version=3;
+    return data;
+  }
+  let shownUrl=null;
+  function imageAddress(text){
+    try{const url=new URL(text);if(['https:','http:'].includes(url.protocol))return url.href;}catch{}
+    return '';
+  }
+  function displayPicture(raw){
+    if(raw===shownUrl)return;
+    shownUrl=raw;
+    const frame=$('picture'), url=imageAddress(raw);
+    $('picture-url').value=url;
+    if(!url){frame.textContent='単語の画像';return;}
+    const img=new Image();
+    img.referrerPolicy='no-referrer';
+    img.alt='単語のイメージ画像';
+    frame.textContent='読み込み中…';
+    img.onload=()=>{if(shownUrl===raw)frame.replaceChildren(img);};
+    img.onerror=()=>{if(shownUrl===raw)frame.textContent='画像を表示できません。画像のURLを確認してください。';};
+    img.src=url;
+  }
+  $('picture-form').addEventListener('submit',e=>{
+    e.preventDefault();
+    const url=imageAddress($('picture-url').value.trim());
+    if(!url){toast('http または https の画像URLを入力してください');return;}
+    if(url===shownUrl){shownUrl=null;displayPicture(url);return;}
+    editCards(data=>{data.imageUrl=url;return true;});
+  });
+  $('picture-clear').addEventListener('click',()=>{
+    $('picture-url').value='';
+    editCards(data=>{data.imageUrl='';return true;});
+  });
+  function isCorrect(board){
+    if(!board.hint)return false;
+    let answer=board.answer;
+    if(!answer){
+      // Rooms created before answers were saved can recover them from the clue.
+      const word=questions(board.group,board.script).find(([,hint])=>hint===board.hint)?.[0];
+      if(!word)return false;
+      answer=board.script==='kata'?kata(word):word;
+    }
+    const sequence=Array(board.slots).fill('');
+    for(const card of Object.values(board.cards)){
+      if(card.slot>0)sequence[card.slot-1]=card.ch;
+    }
+    return sequence.every(Boolean)&&sequence.join('')===answer;
+  }
+  function render(){
+    if(!state)return;
+    displayPicture(state.imageUrl||'');
+    $('script').value=state.script||'hira';
+    Array.from($('group').options).forEach((opt,i)=>opt.textContent=state.script==='kata'?kata(groupLabels[i]):groupLabels[i]);
+    $('group').value=state.group==='semi'?'voiced':state.group;
+    $('word-hint').textContent=state.hint||'';
+    const fixed=state.hint&&fixedCounts[state.group];
+    $('count').disabled=!!fixed;
+    $('count').value=String(fixed||state.count);
+    $('slots').value=String(state.slots);
+    const cards=Object.entries(state.cards), sheet=$('sheet');
+    sheet.classList.toggle('correct',isCorrect(state));
+    $('score').textContent='テーブル '+cards.filter(([,c])=>!c.slot).length+' / '+cards.length;
+    if(sheet.children.length!==state.slots){
+      sheet.replaceChildren();sheet.style.setProperty('--cols',Math.min(state.slots,5));
+      for(let n=1;n<=state.slots;n++){
+        const cell=document.createElement('div');cell.className='slot';cell.dataset.slot=n;
+        const label=document.createElement('span');label.className='number';label.textContent=n+'番';
+        cell.append(label);sheet.append(cell);
+      }
+    }
+    for(const [id,el] of cardsNodes)if(!state.cards[id]){el.remove();cardsNodes.delete(id);}
+    for(const [id,c] of cards){
+      let el=cardsNodes.get(id);
+      if(!el){
+        el=document.createElement('button');el.className='card';el.innerHTML='<span class="glyph"></span>';
+        el.dataset.card=id;el.onpointerdown=e=>startDrag(e,id);el.onclick=e=>{if(e.detail===0)flip(id);};
+        cardsNodes.set(id,el);
+      }
+      const first=c.ch.normalize('NFD')[0];
+      const rowIndex=rows.findIndex(row=>row.includes(first)||kata(row).includes(first));
+      el.style.setProperty('--fill',colors[rowIndex]||colors[0]);
+      el.classList.toggle('multi',c.ch.length>1);
+      el.style.setProperty('--letters',c.flipped?1:c.ch.length);
+      el.classList.toggle('flipped',!!c.flipped);
+      el.firstChild.textContent=c.flipped?'？':c.ch;
+      const index=Number(id.slice(1))||0;
+      el.style.setProperty('--dx',(index*7%17)+'px');
+      el.style.setProperty('--dy',(index*11%25)+'px');
+      el.style.setProperty('--tilt',(index*3%9-4)+'deg');
+      el.setAttribute('aria-label',(c.slot<0?'マスの外':c.slot===0?'テーブル':c.slot+'番のマス')+'、'+(c.flipped?'裏向き':c.ch));
+      el.style.order=c.slot===-1?String(c.order??index):'';
+      const parent=c.slot<0?$('outside'):c.slot===0?document.querySelector('.tray'):sheet.children[c.slot-1];
+      if(el.parentNode!==parent)parent.append(el);
+    }
+  }
+  function localSet(data){state=normalize(data);render();}
+  async function syncState(data){localSet(data);if(db&&roomId&&dbOps){try{await dbOps.set(dbOps.ref(db,'rooms/'+roomId),data);}catch(e){toast('保存できません：'+e.message);}}}
+  async function editCards(change){
+    if(!roomId||!dbOps){change(state);render();return;}
+    try{await dbOps.runTransaction(dbOps.ref(db,'rooms/'+roomId),data=>{
+      if(!data)return;
+      data=normalize(data);return change(data)?data:undefined;
+    });}catch(e){toast('通信エラー：'+e.message);}
+  }
+  function flip(id){editCards(data=>{const c=data.cards[id];if(!c)return false;c.flipped=!c.flipped;return true;});}
+  function moveCard(id,from,ch,to,before=null){
+    editCards(data=>{
+      const c=data.cards[id];
+      if(!c||c.ch!==ch||c.slot!==from||to>data.slots)return false;
+      const other=to>0&&Object.values(data.cards).find(item=>item.slot===to);
+      if(other)other.slot=from;
+      c.slot=to;
+      if(to===-1 && before!==id){
+        const remaining=Object.entries(data.cards).filter(([key,item])=>key!==id&&item.slot===-1)
+          .sort(([a,x],[b,y])=>(x.order??Number(a.slice(1)))-(y.order??Number(b.slice(1))));
+        const at=remaining.findIndex(([key])=>key===before);
+        remaining.splice(at<0?remaining.length:at,0,[id,c]);
+        remaining.forEach(([,item],i)=>item.order=i);
+      }
+      return true;
+    });
+  }
+  let lastTap=null;
+  function startDrag(e,id){
+    if(localDrag||e.button!==0)return;
+    const el=e.currentTarget, c=state.cards[id], from=c.slot, ch=c.ch;
+    const pointer=e.pointerId, startX=e.clientX,startY=e.clientY;
+    const board=$('board'), bounds=el.getBoundingClientRect();
+    const offsetX=startX-bounds.left, offsetY=startY-bounds.top;
+    let ghost=null,target=null;
+    const listeners=new AbortController(), options={signal:listeners.signal};
+    e.preventDefault();
+    localDrag=id;
+    function hit(ev){
+      const x=ev.clientX,y=ev.clientY;
+      const node=document.elementFromPoint(x,y);
+      if(!board.contains(node))return null;
+      const direct=node.closest('.slot,#found-zone,#outside');
+      if(direct)return direct;
+      // Snap small gaps and the sheet padding to the closest numbered cell.
+      let nearest=null, limit=20;
+      for(const cell of $('sheet').children){
+        const rect=cell.getBoundingClientRect();
+        const distance=Math.hypot(Math.max(rect.left-x,0,x-rect.right),Math.max(rect.top-y,0,y-rect.bottom));
+        if(distance<limit){limit=distance;nearest=cell;}
+      }
+      return nearest||$('outside');
+    }
+    function moved(ev){return Math.hypot(ev.clientX-startX,ev.clientY-startY)>=4;}
+    function move(ev){
+      if(ev.pointerId!==pointer||(!ghost&&!moved(ev)))return;
+      if(!ghost){
+        ghost=el.cloneNode(true);ghost.classList.add('ghost');
+        ghost.style.width=bounds.width+'px';ghost.style.height=bounds.height+'px';
+        ghost.style.transform='none';ghost.setAttribute('aria-hidden','true');
+        ghost.tabIndex=-1;document.body.append(ghost);el.classList.add('drag-source');
+      }
+      ghost.style.left=(ev.clientX-offsetX)+'px';ghost.style.top=(ev.clientY-offsetY)+'px';
+      target?.classList.remove('target');target=hit(ev);target?.classList.add('target');
+    }
+    function end(ev){
+      if(ev.pointerId!==undefined&&ev.pointerId!==pointer)return;
+      const dragged=ghost||moved(ev);
+      listeners.abort();localDrag=null;
+      if(board.hasPointerCapture(pointer))board.releasePointerCapture(pointer);
+      target?.classList.remove('target');ghost?.remove();el.classList.remove('drag-source');
+      if(ev.type!=='pointerup'){lastTap=null;return;}
+      if(dragged){
+        lastTap=null;
+        const dest=hit(ev);
+        if(dest){
+          const before=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.card')?.dataset.card;
+          moveCard(id,from,ch,Number(dest.dataset.slot||0),before);
+        }
+      }else if(lastTap?.id===id&&Date.now()-lastTap.time<350){lastTap=null;flip(id);}
+      else lastTap={id,time:Date.now()};
+    }
+    window.addEventListener('pointermove',move,options);
+    for(const event of ['pointerup','pointercancel','blur'])window.addEventListener(event,end,options);
+    board.addEventListener('lostpointercapture',ev=>{if(ev.target===board)end(ev);},options);
+    try{board.setPointerCapture(pointer);}catch{/* Window listeners still track the pointer. */}
+  }
+  $('script').addEventListener('change',e=>syncState(generate(state.group,state.count,e.target.value)));
+  $('slots').addEventListener('change',e=>{
+    const slots=Number(e.target.value);
+    editCards(data=>{
+      const previous=data.slots, cards=Object.values(data.cards);
+      for(const card of cards)if(card.slot>slots)card.slot=-1;
+      const outside=cards.filter(card=>card.slot===-1);
+      for(let n=previous+1;n<=slots&&outside.length;n++)outside.shift().slot=n;
+      data.slots=slots;
+      return true;
+    });
+  });
+  $('group').addEventListener('change',e=>syncState(generate(e.target.value,state.count)));
+  $('count').addEventListener('change',e=>syncState(generate($('group').value,+e.target.value)));
+  $('reset').addEventListener('click',()=>{syncState(generate(state.group,state.count));toast('新しいゲームを準備しました');});
+  $('shuffle').addEventListener('click',()=>{
+    const st=clon(state), cards=Object.values(st.cards);
+    shuffled(cards).forEach((c,i)=>c.slot=i<st.slots?i+1:-1);syncState(st);toast('カードをシャッフルしました');
+  });
+  $('all-open').addEventListener('click',()=>{const st=clon(state);Object.values(st.cards).forEach(c=>c.flipped=false);syncState(st);});
+  $('all-hide').addEventListener('click',()=>{const st=clon(state);Object.values(st.cards).forEach(c=>c.flipped=true);syncState(st);});
+  function setStatus(msg,isOnline){$('status').textContent=msg;$('status-dot').classList.toggle('online',!!isOnline);$('invite-btn').disabled=!isOnline;}
+  function inviteUrl(){
+    if(!roomId||!firebaseConfig)return '';
+    const url=new URL(location.href);url.hash='room='+roomId+'&cfg='+b64enc(firebaseConfig);return url.href;
+  }
+  async function copyInvite(){const url=inviteUrl();if(!url){toast('先に共有ルームを作成してください');return;}
+    try{await navigator.clipboard.writeText(url);toast('招待URLをコピーしました');}
+    catch{const box=$('invitebox');box.style.display='block';box.textContent=url;$('room-modal').showModal();toast('URLを選択してコピーしてください');}
+  }
+  $('invite-btn').addEventListener('click',copyInvite);
+  $('room-btn').addEventListener('click',()=>{if(firebaseConfig)$('config-input').value=JSON.stringify(firebaseConfig,null,2);$('room-modal').showModal();});
+  $('close-modal').addEventListener('click',()=>$('room-modal').close());
+  function parseConfig(){
+    let s=$('config-input').value.trim();
+    // Supports pasting the whole Firebase code snippet as well as raw JSON.
+    if(s.startsWith('const firebaseConfig')){const m=s.match(/\{[\s\S]*?\}/);if(m)s=m[0];}
+    s=s.replace(/([{,]\s*)([A-Za-z_$][\w$]*)(\s*:)/g,'$1"$2"$3').replace(/,\s*}/g,'}');
+    let config;
+    try{config=JSON.parse(s);}catch{throw Error('正しいJSONを貼り付けてください（キーと値は二重引用符で囲みます）。');}
+    if(!config.apiKey||!config.authDomain||!config.databaseURL||!config.projectId||!config.appId)throw Error('apiKey / authDomain / databaseURL / projectId / appId が必要です。');
+    return config;
+  }
+  $('save-config').addEventListener('click',()=>{
+    try{firebaseConfig=parseConfig();localStorage.setItem('hd_firebase_config',JSON.stringify(firebaseConfig));$('room-error').textContent='';toast('設定を保存しました。次は共有ルームを作成してください。');}
+    catch(e){$('room-error').textContent=e.message;}
+  });
+  $('create-room').addEventListener('click',async()=>{
+    try{
+      firebaseConfig=parseConfig();localStorage.setItem('hd_firebase_config',JSON.stringify(firebaseConfig));$('room-error').textContent='';
+      const newRoomId=safeRandomId();$('create-room').disabled=true;await joinRoom(newRoomId,firebaseConfig,true);
+      const link=inviteUrl();$('invitebox').style.display='block';$('invitebox').textContent=link;
+      toast('共有ルームを作成しました！招待URLを送れます');
+    }catch(e){$('room-error').textContent=e.message;setStatus('接続できません（ローカル）',false);}finally{$('create-room').disabled=false;}
+  });
+  async function firebaseSDK(){
+    // Firebase is loaded only for online mode; offline preview needs no external requests.
+    const base='https://www.gstatic.com/firebasejs/12.11.0/';
+    const [a,b,c]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-database.js')]);
+    return {app:a,auth:b,db:c};
+  }
+  async function joinRoom(id,config,create){
+    if(!/^[a-f0-9]{36}$/.test(id))throw Error('招待URLのルームIDが不正です。');
+    setStatus('接続中…',false);
+    const sdk=await firebaseSDK();
+    if(unsubscribe){unsubscribe();unsubscribe=null;}
+    // Reinitialize only when app config changes.
+    if(!app||app.options.projectId!==config.projectId){
+      app=sdk.app.initializeApp(config, 'hd-'+config.projectId);
+      auth=sdk.auth.getAuth(app);
+      db=sdk.db.getDatabase(app);
+    }
+    const user=await sdk.auth.signInAnonymously(auth);
+    dbOps=sdk.db;roomId=id;firebaseConfig=config;
+    const roomRef=sdk.db.ref(db,`rooms/${id}`);
+    const current=await sdk.db.get(roomRef);
+    if(!current.exists()){
+      if(!create)throw Error('ルームが存在しません。先生に新しい招待URLを送ってもらってください。');
+      await sdk.db.set(roomRef, state||generate());
+    }
+    unsubscribe=sdk.db.onValue(roomRef,snapshot=>{
+      if(snapshot.exists()&&snapshot.val()?.cards){
+        localSet(snapshot.val());setStatus('共同プレイ中',true);
+      }
+    },error=>{setStatus('通信エラー',false);toast(error.message)});
+    history.replaceState(null,'',location.pathname+location.search+'#room='+id+'&cfg='+b64enc(config));
+    setStatus('共同プレイ中',true);
+    $('room-modal').close();
+  }
+  async function startup(){
+    localSet(generate());
+    try{firebaseConfig=JSON.parse(localStorage.getItem('hd_firebase_config')||'null');}catch{}
+    try{
+      const frag=new URLSearchParams(location.hash.slice(1));
+      const id=frag.get('room'),configParam=frag.get('cfg');
+      if(id&&configParam){const config=b64dec(configParam);firebaseConfig=config;await joinRoom(id,config,false);toast('共有ルームに参加しました！');}
+    }catch(e){setStatus('ローカル練習モード',false);toast('接続失敗：'+e.message);console.error(e);}
+  }
+  startup();
+</script>
+</body>
+</html>
