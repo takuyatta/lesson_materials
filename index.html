@@ -21,7 +21,7 @@
     .right{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
     .intro{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 10px;flex-wrap:wrap}
     .intro strong{font-size:18px}.intro small{font-size:13px;color:var(--muted)}
-    .score{background:#e4f6ed;color:#087254;border-radius:99px;font-size:13px;font-weight:800;padding:8px 14px;white-space:nowrap}
+    .score{min-height:1.5em;color:#b42318;border-radius:99px;font-size:13px;font-weight:800;padding:8px 14px;white-space:nowrap}
     .board-scroll{width:100%;overflow-x:auto;overflow-y:hidden;border-radius:16px;box-shadow:0 5px 22px #1b38561b;border:1px solid #cedbf1;background:#fff}
     #board{display:grid;grid-template-columns:minmax(0,4fr) minmax(116px,1fr);min-height:350px;user-select:none}
     #sheet{display:grid;grid-template-columns:repeat(var(--cols,5),minmax(0,1fr));align-content:start;gap:8px;padding:16px;background:#f7f9fc}
@@ -53,12 +53,14 @@
     #picture-form{flex:1 0 100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     #picture-url{flex:1;min-width:9em;font-size:14px}
     .intro{display:grid;grid-template-columns:minmax(0,1fr) clamp(112px,22%,240px);align-items:center}
-    .score{justify-self:start}
+    .score{justify-self:start} #roman[aria-pressed="true"]{background:#1b3256;color:white}
     .word-picture{grid-column:2;grid-row:1 / 3;width:100%;aspect-ratio:1.6;display:grid;place-items:center;overflow:hidden;border:2px dotted #929aa3;border-radius:14px;background:white;color:var(--muted);font-size:13px;text-align:center}
     .word-picture img{display:block;width:100%;height:100%;min-height:0;object-fit:contain}
-    .card.multi{container-type:inline-size;width:min(122px,92%)}
+    .card{container-type:inline-size;min-width:0}
+    .card.multi{width:min(122px,92%)}
     .tray .card.multi{width:min(110px,100%)}
     .card.multi .glyph{white-space:nowrap;font-size:min(32px,calc(94cqw / var(--letters)));line-height:1.15}
+    .card.roman .glyph{font-family:Arial,sans-serif;font-weight:700;font-size:min(22px,42cqw,calc(92cqw / var(--letters)));line-height:1.1;white-space:nowrap}
     #word-hint{font-size:14px;font-weight:500;color:#6b7280;margin:4px 0 8px}
   </style>
 </head>
@@ -72,14 +74,15 @@
     <label>文字の種類 <select id="script"><option value="hira">ひらがな</option><option value="kata">カタカナ</option></select></label>
     <label>出題範囲
       <select id="group">
-        <option value="ak">第2回｜あ行・か行</option>
-        <option value="st">第3回｜さ行・た行</option>
-        <option value="nh">第4回｜な行・は行</option>
-        <option value="my">第5回｜ま行・や行</option>
-        <option value="rw">第6回｜ら行・わ行・を・ん</option>
-        <option value="start20">復習｜あ〜た行</option>
-        <option value="start30">復習｜あ〜は行</option>
-        <option value="last21">復習｜は〜わ行・を・ん</option>
+        <option value="ak">あ行・か行を含む語</option>
+        <option value="st">さ行・た行を含む語</option>
+        <option value="nh">な行・は行を含む語</option>
+        <option value="my">ま行・や行を含む語</option>
+        <option value="rw">ら行・わ行（を含む）の語</option>
+        <option value="nasal">「ん」を含む語</option>
+        <option value="start20">復習｜あ〜た行を含む語</option>
+        <option value="start30">復習｜あ〜は行を含む語</option>
+        <option value="last21">復習｜は〜わ行・を・んを含む語</option>
         <option value="all">総復習｜清音46文字</option>
         <option value="voiced">濁音・半濁音</option>
         <option value="glide">拗音</option>
@@ -94,7 +97,7 @@
     <label>台紙のマス数 <select id="slots"><option value="1">1マス</option><option value="2">2マス</option><option value="3">3マス</option><option value="4">4マス</option><option value="5" selected>5マス</option><option value="6">6マス</option><option value="7">7マス</option></select></label>
     <button id="shuffle" title="同じ文字をランダムに再配置">🔀 シャッフル</button>
     <button id="all-open">👁 全部表に</button>
-    <button id="all-hide">🙈 全部裏に</button>
+    <button id="roman" aria-pressed="false" lang="en">Roman alphabet</button>
     <button id="reset">カード全交換</button>
     <div class="right"><button id="room-btn" class="dark">🌐 共同プレイ</button><button id="invite-btn" class="primary" disabled>招待URLをコピー</button></div>
     <form id="picture-form">
@@ -106,7 +109,7 @@
   <div class="intro">
     <div><strong>英語をヒントに、単語を作りましょう。</strong><p id="word-hint" lang="en" aria-live="polite"></p><small>マスの外も探してみましょう。カードはドラッグで移動でき、別のカードがあるマスに置くと入れ替わります。ダブルクリック／ダブルタップで裏返せます。</small></div>
     <div class="word-picture" id="picture" aria-live="polite"><span>単語の画像</span></div>
-    <div class="score" id="score">テーブル 0 / 10</div>
+    <div class="score" id="score" role="status" aria-live="polite"></div>
   </div>
   <div class="board-scroll"><div id="board"><div class="play-area"><div id="sheet" aria-label="番号付きの台紙"></div><div id="outside" data-slot="-1" role="group" aria-label="マスの外"></div></div><div id="found-zone"><div class="zone-title">テーブル</div><div class="tray"></div></div></div></div>
   <div class="help">
@@ -129,7 +132,7 @@
 <script type="module">
   const CHAR_GROUPS = {
     ak:'あいうえおかきくけこ', st:'さしすせそたちつてと', nh:'なにぬねのはひふへほ',
-    my:'まみむめもやゆよ', rw:'らりるれろわをん',
+    my:'まみむめもやゆよ', rw:'らりるれろわを', nasal:'ん',
     start20:'あいうえおかきくけこさしすせそたちつてと',
     start30:'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほ',
     last21:'はひふへほまみむめもやゆよらりるれろわをん',
@@ -154,31 +157,586 @@
     glide:[...'きしちにひみりぎじびぴ'].flatMap(base=>[...'ゃゅょ'].map(small=>base+small))
   };
   // Each entry pairs the reading with the only clue shown to the learner.
-  const vocabulary={
-    "ak": "あお|blue;あか|red;いえ|house;いけ|pond;えき|station;かお|face;こえ|voice;おく|to put down;きく|to listen;かく|to write;あう|to meet;いく|to go;あかい|red (adjective);あおい|blue (adjective);おおい|numerous;おおきい|big;きかい|machine;くうこう|airport;こうこう|high school;かいけい|bill at a restaurant",
-    "st": "すし|sushi;そと|outside;した|below;ちち|my father;つち|soil;たつ|to stand up;とし|age;てつ|iron;としした|younger in age",
-    "nh": "はな|flower;はは|my mother;ふね|boat;ほね|bone;ほほ|cheek;ぬの|cloth;ははのひ|Mother’s Day",
-    "my": "やま|mountain;ゆめ|dream;みみ|ear;もも|peach;まめ|bean;やむ|to stop (of rain);もむ|to rub",
-    "rw": "わん|Japanese soup bowl;わる|to split;わり|proportion;わら|straw;われる|to break into pieces",
-    "review": "いぬ|dog;ねこ|cat;いす|chair;かさ|umbrella;ほん|book;みせ|shop;あさ|morning;なつ|summer;あした|tomorrow;あなた|you;わたし|I;となり|next door;ちかく|nearby;いなか|countryside;くすり|medicine;さかな|fish;てんき|weather;なまえ|name;くるま|car;おかね|money;あたま|head;おなか|stomach;せなか|back (body part);はさみ|scissors;つくえ|desk;とけい|clock;きもの|kimono;やさい|vegetables;からい|spicy;あつい|hot (weather);さむい|cold (weather);すこし|a little;いつも|always;あまい|sweet;おきる|to get up;たてる|to build;あるく|to walk;おしえる|to teach;はたらく|to work;こたえる|to answer;はたち|twenty years old;あいさつ|greeting;えんそく|school excursion;かいもの|shopping;くつした|socks;ちかてつ|subway;しんせつ|kind;すいとう|water bottle;せいかつ|daily life;たいせつ|important;たいへん|very difficult;たてもの|building;てんいん|shop assistant;あたらしい|new;あたたかい|warm;おもしろい|interesting;つまらない|boring;おくりもの|gift;わすれもの|something left behind;おとしもの|lost item;おとこのこ|boy;おんなのこ|girl;おとこのひと|man;おんなのひと|woman;ひるやすみ|lunch break;なつやすみ|summer vacation;ふゆやすみ|winter vacation;はるやすみ|spring vacation;けいさつかん|police officer;てんきよほう|weather forecast;しんかんせん|bullet train;せんたくもの|laundry;こうこうせい|high school student;おまわりさん|police officer on patrol;ていきけん|commuter pass;こうさてん|intersection;いもうと|younger sister;おとうと|younger brother;うるさい|noisy;やわらかい|soft;ふつか|second day of the month",
-    "voiced": "みず|water;かぎ|key;ぶた|pig;ぱん|bread;かばん|bag;たまご|egg;りんご|apple;めがね|glasses;かぞく|family;でんわ|telephone;じかん|time;ごはん|cooked rice;げんき|healthy;さんぽ|a walk;えんぴつ|pencil;くだもの|fruit;てぶくろ|gloves;だいがく|university;どうぶつ|animal;ばんごう|number;ともだち|friend;にんげん|human being;おべんとう|boxed lunch;れいぞうこ|refrigerator;だいがくせい|university student;どうぶつえん|zoo;でんわばんごう|telephone number",
-    "glide": "おちゃ|tea;きゃく|guest;しゃしん|photograph;でんしゃ|train;かいしゃ|company;いしゃ|doctor;じしょ|dictionary;ちゃわん|rice bowl;やきゅう|baseball;りょこう|travel;じてんしゃ|bicycle;びょういん|hospital;びょうき|illness;じどうしゃ|automobile;しゅくだい|homework;きょうしつ|classroom;きょうだい|siblings;じゅぎょう|class (lesson);としょかん|library;きょうかしょ|textbook;ちゅうがく|junior high school;りゅうがく|study abroad;ゆうびんきょく|post office;ちゅうしゃじょう|parking lot;りゅうがくせい|international student;しょうがくせい|elementary school student;ちゅうがくせい|junior high school student;かいがいりょこう|overseas travel",
-    "long": "きのう|yesterday;くうき|air;えいご|English language;えいが|movie;ぼうし|hat;とおい|far;こおり|ice;おおい|numerous;せんせい|teacher;がくせい|student;こうえん|park;くうこう|airport;すうがく|mathematics;けいたい|mobile phone;ひこうき|airplane;おとうさん|father;おかあさん|mother;おにいさん|older brother;おねえさん|older sister;おばあさん|grandmother;おじいさん|grandfather;れいぞうこ|refrigerator;けいさつかん|police officer;こうこうせい|high school student;てんきよほう|weather forecast;でんわばんごう|telephone number",
-    "double": "きって|postage stamp;きっぷ|ticket;ざっし|magazine;こっち|this way;そっち|that way;もっと|more;あさって|day after tomorrow;がっこう|school;にっき|diary;せっけん|soap;けっこん|marriage;しっぱい|failure;りっぱ|splendid;いっぱい|full;ゆっくり|slowly;はっきり|clearly;びっくり|surprise;きっさてん|coffee shop;しゅっぱつ|departure;ひっこし|moving house;まっすぐ|straight ahead;きっぷうりば|ticket counter",
-    "kataLong": "けーき|cake;こーと|coat;のーと|notebook;ちーず|cheese;ぷーる|swimming pool;こーひー|coffee;すーぱー|supermarket;せーたー|sweater;たくしー|taxi;てーぶる|table;でぱーと|department store;あぱーと|apartment building;すかーと|skirt;しゃわー|shower;ぼーるぺん|ballpoint pen;えれべーたー|elevator;かれーらいす|curry rice;えすかれーたー|escalator;あいすくりーむ|ice cream",
-    "kataDouble": "べっど|bed;かっぷ|cup;こっぷ|drinking glass;ばっぐ|bag;まっち|matchstick;こっく|cook (profession);ぽけっと|pocket;ちけっと|ticket;すりっぱ|slippers;きっちん|kitchen;さっかー|soccer;せっと|set;すいっち|switch;ろぼっと|robot;ねっくれす|necklace;さんどいっち|sandwich;いんたーねっと|internet"
-};
+  const hiraganaWords=[
+    ["すてき", "lovely"],
+    ["ついたち", "first day of the month"],
+    ["おととい", "the day before yesterday"],
+    ["ひとつ", "one item"],
+    ["ふたつ", "two items"],
+    ["ひとこと", "a single word"],
+    ["はたけ", "field for crops"],
+    ["ひなた", "sunny spot"],
+    ["ほそい", "thin or narrow"],
+    ["ふかい", "deep"],
+    ["ふとい", "thick"],
+    ["せんたく", "laundry"],
+    ["あんしん", "peace of mind"],
+    ["はんとし", "half a year"],
+    ["ふれる", "to touch"],
+    ["ほめる", "to praise"],
+    ["ふる", "to fall (rain or snow)"],
+    ["ふむ", "to step on"],
+    ["へる", "to decrease"],
+    ["ほる", "to dig"],
+    ["もれる", "to leak"],
+    ["はれる", "to clear up (weather)"],
+    ["むれ", "a flock"],
+    ["ほんもの", "the real thing"],
+    ["ふわふわ", "soft and fluffy"],
+    ["ふらふら", "unsteady on one's feet"],
+    ["わんわん", "woof woof"],
+    ["まんまる", "perfectly round"],
+    ["みほん", "sample"],
+    ["まもなく", "shortly"],
+
+    ["あき", "autumn"],
+    ["あい", "love"],
+    ["あく", "to open (by itself)"],
+    ["いか", "squid"],
+    ["おか", "hill"],
+    ["おき", "offshore waters"],
+    ["かい", "shellfish"],
+    ["かう", "to buy"],
+    ["かこ", "the past"],
+    ["こい", "carp"],
+    ["いき", "breath"],
+    ["うえ", "above"],
+    ["おい", "nephew"],
+    ["きおく", "memory"],
+    ["かけい", "household finances"],
+    ["きあい", "fighting spirit"],
+    ["けいき", "economic conditions"],
+    ["えいきょう", "influence"],
+    ["からだ", "body"],
+    ["まど", "window"],
+    ["のど", "throat"],
+    ["かぜ", "wind"],
+    ["かべ", "wall"],
+    ["ねずみ", "mouse"],
+    ["でぐち", "exit"],
+    ["いりぐち", "entrance"],
+    ["ぶんか", "culture"],
+    ["ぶんがく", "literature"],
+    ["みなとまち", "port town"],
+
+    ["あお", "blue"],
+    ["あか", "red"],
+    ["いえ", "house"],
+    ["いけ", "pond"],
+    ["えき", "station"],
+    ["かお", "face"],
+    ["こえ", "voice"],
+    ["おく", "to put down"],
+    ["きく", "to listen"],
+    ["かく", "to write"],
+    ["あう", "to meet"],
+    ["いく", "to go"],
+    ["あかい", "red (adjective)"],
+    ["あおい", "blue (adjective)"],
+    ["おおい", "numerous"],
+    ["おおきい", "big"],
+    ["きかい", "machine"],
+    ["くうこう", "airport"],
+    ["こうこう", "high school"],
+    ["かいけい", "bill at a restaurant"],
+    ["すし", "sushi"],
+    ["そと", "outside"],
+    ["した", "below"],
+    ["ちち", "my father"],
+    ["つち", "soil"],
+    ["たつ", "to stand up"],
+    ["とし", "age"],
+    ["てつ", "iron"],
+    ["としした", "younger in age"],
+    ["はな", "flower"],
+    ["はは", "my mother"],
+    ["ふね", "boat"],
+    ["ほね", "bone"],
+    ["ほほ", "cheek"],
+    ["ぬの", "cloth"],
+    ["ははのひ", "Mother’s Day"],
+    ["やま", "mountain"],
+    ["ゆめ", "dream"],
+    ["みみ", "ear"],
+    ["もも", "peach"],
+    ["まめ", "bean"],
+    ["やむ", "to stop (of rain)"],
+    ["もむ", "to rub"],
+    ["わん", "Japanese soup bowl"],
+    ["わる", "to split"],
+    ["わり", "proportion"],
+    ["わら", "straw"],
+    ["われる", "to break into pieces"],
+    ["いぬ", "dog"],
+    ["ねこ", "cat"],
+    ["いす", "chair"],
+    ["かさ", "umbrella"],
+    ["ほん", "book"],
+    ["みせ", "shop"],
+    ["あさ", "morning"],
+    ["なつ", "summer"],
+    ["あした", "tomorrow"],
+    ["あなた", "you"],
+    ["わたし", "I"],
+    ["となり", "next door"],
+    ["ちかく", "nearby"],
+    ["いなか", "countryside"],
+    ["くすり", "medicine"],
+    ["さかな", "fish"],
+    ["てんき", "weather"],
+    ["なまえ", "name"],
+    ["くるま", "car"],
+    ["おかね", "money"],
+    ["あたま", "head"],
+    ["おなか", "stomach"],
+    ["せなか", "back (body part)"],
+    ["はさみ", "scissors"],
+    ["つくえ", "desk"],
+    ["とけい", "clock"],
+    ["きもの", "kimono"],
+    ["やさい", "vegetables"],
+    ["からい", "spicy"],
+    ["あつい", "hot (weather)"],
+    ["さむい", "cold (weather)"],
+    ["すこし", "a little"],
+    ["いつも", "always"],
+    ["あまい", "sweet"],
+    ["おきる", "to get up"],
+    ["たてる", "to build"],
+    ["あるく", "to walk"],
+    ["おしえる", "to teach"],
+    ["はたらく", "to work"],
+    ["こたえる", "to answer"],
+    ["はたち", "twenty years old"],
+    ["あいさつ", "greeting"],
+    ["えんそく", "school excursion"],
+    ["かいもの", "shopping"],
+    ["くつした", "socks"],
+    ["ちかてつ", "subway"],
+    ["しんせつ", "kind"],
+    ["すいとう", "water bottle"],
+    ["せいかつ", "daily life"],
+    ["たいせつ", "important"],
+    ["たいへん", "very difficult"],
+    ["たてもの", "building"],
+    ["てんいん", "shop assistant"],
+    ["あたらしい", "new"],
+    ["あたたかい", "warm"],
+    ["おもしろい", "interesting"],
+    ["つまらない", "boring"],
+    ["おくりもの", "gift"],
+    ["わすれもの", "something left behind"],
+    ["おとしもの", "lost item"],
+    ["おとこのこ", "boy"],
+    ["おんなのこ", "girl"],
+    ["おとこのひと", "man"],
+    ["おんなのひと", "woman"],
+    ["ひるやすみ", "lunch break"],
+    ["なつやすみ", "summer vacation"],
+    ["ふゆやすみ", "winter vacation"],
+    ["はるやすみ", "spring vacation"],
+    ["けいさつかん", "police officer"],
+    ["てんきよほう", "weather forecast"],
+    ["しんかんせん", "bullet train"],
+    ["せんたくもの", "laundry"],
+    ["こうこうせい", "high school student"],
+    ["おまわりさん", "police officer on patrol"],
+    ["ていきけん", "commuter pass"],
+    ["こうさてん", "intersection"],
+    ["いもうと", "younger sister"],
+    ["おとうと", "younger brother"],
+    ["うるさい", "noisy"],
+    ["やわらかい", "soft"],
+    ["ふつか", "second day of the month"],
+    ["みず", "water"],
+    ["かぎ", "key"],
+    ["ぶた", "pig"],
+    ["ぱん", "bread"],
+    ["かばん", "bag"],
+    ["たまご", "egg"],
+    ["りんご", "apple"],
+    ["めがね", "glasses"],
+    ["かぞく", "family"],
+    ["でんわ", "telephone"],
+    ["じかん", "time"],
+    ["ごはん", "cooked rice"],
+    ["げんき", "healthy"],
+    ["さんぽ", "a walk"],
+    ["えんぴつ", "pencil"],
+    ["くだもの", "fruit"],
+    ["てぶくろ", "gloves"],
+    ["だいがく", "university"],
+    ["どうぶつ", "animal"],
+    ["ばんごう", "number"],
+    ["ともだち", "friend"],
+    ["にんげん", "human being"],
+    ["おべんとう", "boxed lunch"],
+    ["れいぞうこ", "refrigerator"],
+    ["だいがくせい", "university student"],
+    ["どうぶつえん", "zoo"],
+    ["でんわばんごう", "telephone number"],
+    ["おちゃ", "tea"],
+    ["きゃく", "guest"],
+    ["しゃしん", "photograph"],
+    ["でんしゃ", "train"],
+    ["かいしゃ", "company"],
+    ["いしゃ", "doctor"],
+    ["じしょ", "dictionary"],
+    ["ちゃわん", "rice bowl"],
+    ["やきゅう", "baseball"],
+    ["りょこう", "travel"],
+    ["じてんしゃ", "bicycle"],
+    ["びょういん", "hospital"],
+    ["びょうき", "illness"],
+    ["じどうしゃ", "automobile"],
+    ["しゅくだい", "homework"],
+    ["きょうしつ", "classroom"],
+    ["きょうだい", "siblings"],
+    ["じゅぎょう", "class (lesson)"],
+    ["としょかん", "library"],
+    ["きょうかしょ", "textbook"],
+    ["ちゅうがく", "junior high school"],
+    ["りゅうがく", "study abroad"],
+    ["ゆうびんきょく", "post office"],
+    ["ちゅうしゃじょう", "parking lot"],
+    ["りゅうがくせい", "international student"],
+    ["しょうがくせい", "elementary school student"],
+    ["ちゅうがくせい", "junior high school student"],
+    ["かいがいりょこう", "overseas travel"],
+    ["きのう", "yesterday"],
+    ["くうき", "air"],
+    ["えいご", "English language"],
+    ["えいが", "movie"],
+    ["ぼうし", "hat"],
+    ["とおい", "far"],
+    ["こおり", "ice"],
+    ["せんせい", "teacher"],
+    ["がくせい", "student"],
+    ["こうえん", "park"],
+    ["すうがく", "mathematics"],
+    ["けいたい", "mobile phone"],
+    ["ひこうき", "airplane"],
+    ["おとうさん", "father"],
+    ["おかあさん", "mother"],
+    ["おにいさん", "older brother"],
+    ["おねえさん", "older sister"],
+    ["おばあさん", "grandmother"],
+    ["おじいさん", "grandfather"],
+    ["きって", "postage stamp"],
+    ["きっぷ", "ticket"],
+    ["ざっし", "magazine"],
+    ["こっち", "this way"],
+    ["そっち", "that way"],
+    ["もっと", "more"],
+    ["あさって", "day after tomorrow"],
+    ["がっこう", "school"],
+    ["にっき", "diary"],
+    ["せっけん", "soap"],
+    ["けっこん", "marriage"],
+    ["しっぱい", "failure"],
+    ["りっぱ", "splendid"],
+    ["いっぱい", "full"],
+    ["ゆっくり", "slowly"],
+    ["はっきり", "clearly"],
+    ["びっくり", "surprise"],
+    ["きっさてん", "coffee shop"],
+    ["しゅっぱつ", "departure"],
+    ["ひっこし", "moving house"],
+    ["まっすぐ", "straight ahead"],
+    ["きっぷうりば", "ticket counter"],
+    ["わたる", "to cross"],
+    ["わける", "to divide"],
+    ["わかる", "to understand"],
+    ["わすれる", "to forget"],
+    ["わかれる", "to part ways"],
+    ["わかい", "young"],
+    ["わらう", "to laugh"],
+    ["わずか", "a small amount"],
+    ["わりあい", "ratio"],
+    ["わりびき", "discount"],
+    ["れきし", "history"],
+    ["れんらく", "contact"],
+    ["れんしゅう", "practice"],
+    ["りゆう", "reason"],
+    ["りそう", "ideal"],
+    ["りろん", "theory"],
+    ["るす", "absence from home"],
+    ["ろうか", "corridor"],
+    ["ろくおん", "sound recording"],
+    ["まもる", "to protect"],
+    ["まわる", "to turn around"],
+    ["まくら", "pillow"],
+    ["まつり", "festival"],
+    ["まんなか", "middle"],
+    ["まにあう", "to be on time"],
+    ["みらい", "future"],
+    ["みなと", "harbor"],
+    ["みなみ", "south"],
+    ["みえる", "to be visible"],
+    ["みおくる", "to see someone off"],
+    ["みつける", "to find"],
+    ["むかし", "long ago"],
+    ["むかえる", "to welcome"],
+    ["むすこ", "son"],
+    ["むすめ", "daughter"],
+    ["めいし", "business card"],
+    ["めいれい", "order or command"],
+    ["もんだい", "problem"],
+    ["もよう", "pattern"],
+    ["もくてき", "purpose"],
+    ["やくそく", "promise"],
+    ["やくわり", "role"],
+    ["やすむ", "to rest"],
+    ["ゆうめい", "famous"],
+    ["ゆうはん", "evening meal"],
+    ["ようい", "preparation"],
+    ["よやく", "reservation"],
+    ["よてい", "schedule"],
+    ["よろこぶ", "to be delighted"],
+    ["やくにたつ", "to be useful"],
+    ["しんぱい", "worry"],
+    ["じゅんび", "preparation"],
+    ["ちゅうい", "caution"],
+    ["ちょきん", "savings"],
+    ["しょくどう", "dining hall"],
+    ["しょくりょう", "food supplies"],
+    ["けいけん", "experience"],
+    ["ほうほう", "method"],
+    ["じょうほう", "information"],
+    ["かんこう", "sightseeing"],
+    ["たいふう", "typhoon"],
+    ["ざんぎょう", "overtime work"],
+    ["けいざい", "economy"],
+    ["がいこくじん", "foreigner"],
+    ["ぎんこう", "bank"],
+    ["だいどころ", "kitchen"],
+    ["やっぱり", "as expected"],
+    ["ぜったい", "absolutely"],
+    ["がっき", "musical instrument"],
+    ["しっかり", "firmly"],
+    ["うっかり", "carelessly"],
+    ["にっこう", "sunlight"],
+    ["きっかけ", "trigger or starting point"],
+    ["まったく", "entirely"],
+    ["けっか", "result"],
+    ["けっせき", "absence from class"],
+    ["せっきょくてき", "proactive"],
+    ["さっそく", "right away"],
+    ["あっというま", "in the blink of an eye"],
+  ];
+  const katakanaWords=[
+    ["アイス", "ice cream (short form)"],
+    ["スカウト", "talent scout"],
+    ["スコア", "score"],
+    ["テイクアウト", "takeout"],
+    ["ソフト", "software (short form)"],
+    ["ホスト", "host"],
+    ["テラス", "terrace"],
+    ["タクシー", "taxi"],
+    ["モラル", "moral standards"],
+    ["マロン", "chestnut (French loanword)"],
+    ["ホルン", "French horn"],
+
+    ["ココア", "cocoa drink"],
+    ["カカオ", "cacao"],
+
+    ["カメラ", "camera"],
+    ["テニス", "tennis"],
+    ["ホテル", "hotel"],
+    ["トマト", "tomato"],
+    ["レタス", "lettuce"],
+    ["テレビ", "television"],
+    ["ラジオ", "radio"],
+    ["ミルク", "milk"],
+    ["インク", "ink"],
+    ["クラス", "class"],
+    ["テスト", "test"],
+    ["マスク", "mask"],
+    ["タオル", "towel"],
+    ["オイル", "oil"],
+    ["コイン", "coin"],
+    ["ピアノ", "piano"],
+    ["バナナ", "banana"],
+    ["メロン", "melon"],
+    ["レモン", "lemon"],
+    ["アニメ", "animation"],
+    ["アルバム", "album"],
+    ["アドレス", "address"],
+    ["アクセント", "accent"],
+    ["アルバイト", "part-time job"],
+    ["イラスト", "illustration"],
+    ["インテリア", "interior decor"],
+    ["インフレ", "inflation"],
+    ["エプロン", "apron"],
+    ["オレンジ", "orange"],
+    ["カレンダー", "calendar"],
+    ["カタログ", "catalog"],
+    ["キロメートル", "kilometer"],
+    ["クイズ", "quiz"],
+    ["クラブ", "club"],
+    ["クリスマス", "Christmas"],
+    ["グラフ", "graph"],
+    ["コピー", "photocopy"],
+    ["コンサート", "concert"],
+    ["コンビニ", "convenience store"],
+    ["コンピューター", "computer"],
+    ["サラダ", "salad"],
+    ["サンプル", "sample"],
+    ["サンダル", "sandals"],
+    ["システム", "system"],
+    ["スライス", "slice"],
+    ["スパイス", "spice"],
+    ["スケジュール", "schedule"],
+    ["スタイル", "style"],
+    ["ステレオ", "stereo"],
+    ["ステージ", "stage"],
+    ["ストレス", "stress"],
+    ["スピード", "speed"],
+    ["スポーツ", "sports"],
+    ["ズボン", "trousers"],
+    ["セミナー", "seminar"],
+    ["センター", "center"],
+    ["ソファ", "sofa"],
+    ["タイプ", "type"],
+    ["タイミング", "timing"],
+    ["タレント", "TV personality"],
+    ["チーム", "team"],
+    ["チャンス", "opportunity"],
+    ["チャンネル", "channel"],
+    ["チェック", "check"],
+    ["チャレンジ", "challenge"],
+    ["チューリップ", "tulip"],
+    ["チョコレート", "chocolate"],
+    ["ツアー", "tour"],
+    ["テキスト", "textbook"],
+    ["デザイン", "design"],
+    ["テント", "tent"],
+    ["トイレ", "toilet"],
+    ["ドライブ", "drive"],
+    ["ドラマ", "drama"],
+    ["ドラム", "drum"],
+    ["ナイフ", "knife"],
+    ["ネクタイ", "necktie"],
+    ["ニュース", "news"],
+    ["ノート", "notebook"],
+    ["ハイキング", "hiking"],
+    ["ハンドル", "steering wheel"],
+    ["パンツ", "pants"],
+    ["ピンク", "pink"],
+    ["ビデオ", "video"],
+    ["ビニール", "vinyl"],
+    ["ヒント", "hint"],
+    ["ビルディング", "building"],
+    ["プラス", "plus"],
+    ["プラン", "plan"],
+    ["プリント", "printout"],
+    ["プレゼント", "gift"],
+    ["プロジェクト", "project"],
+    ["プログラム", "program"],
+    ["ベランダ", "balcony"],
+    ["ボタン", "button"],
+    ["ボランティア", "volunteer"],
+    ["ポスター", "poster"],
+    ["マイク", "microphone"],
+    ["マイナス", "minus"],
+    ["マラソン", "marathon"],
+    ["メニュー", "menu"],
+    ["モデル", "model"],
+    ["モノレール", "monorail"],
+    ["ユニフォーム", "uniform"],
+    ["ヨーグルト", "yogurt"],
+    ["ライオン", "lion"],
+    ["ランチ", "lunch"],
+    ["リサイクル", "recycling"],
+    ["リスト", "list"],
+    ["リズム", "rhythm"],
+    ["ルール", "rule"],
+    ["レシート", "receipt"],
+    ["レストラン", "restaurant"],
+    ["レベル", "level"],
+    ["レポート", "report"],
+    ["ロマンチック", "romantic"],
+    ["ワイン", "wine"],
+    ["ディスプレー", "display screen"],
+    ["イヤホン", "earphones"],
+    ["アイスクリーム", "ice cream"],
+    ["エスカレーター", "escalator"],
+    ["ラッシュ", "rush hour"],
+    ["オリンピック", "Olympics"],
+    ["スタッフ", "staff"],
+    ["ヘルメット", "helmet"],
+    ["カセット", "cassette"],
+    ["トラック", "truck"],
+    ["スイッチ", "switch"],
+    ["スリッパ", "slippers"],
+    ["インターネット", "internet"],
+    ["チケット", "ticket"],
+    ["ポケット", "pocket"],
+    ["サンドイッチ", "sandwich"],
+    ["キャプテン", "captain"],
+    ["キャベツ", "cabbage"],
+    ["キャンプ", "camping"],
+    ["ジャンル", "genre"],
+    ["ジャンプ", "jump"],
+    ["ジャズ", "jazz"],
+    ["シャベル", "shovel"],
+    ["シャツ", "shirt"],
+    ["シャンプー", "shampoo"],
+    ["ジャケット", "jacket"],
+    ["プラスチック", "plastic"],
+  ];
+  const toHira=text=>text.replace(/[ァ-ヶ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-96));
+  const romanMap={};
+  for(const [kana,latin] of [
+    ['あいうえお','a i u e o'],['かきくけこ','ka ki ku ke ko'],['さしすせそ','sa shi su se so'],
+    ['たちつてと','ta chi tsu te to'],['なにぬねの','na ni nu ne no'],['はひふへほ','ha hi fu he ho'],
+    ['まみむめも','ma mi mu me mo'],['やゆよ','ya yu yo'],['らりるれろ','ra ri ru re ro'],
+    ['わをん','wa o n'],['がぎぐげご','ga gi gu ge go'],['ざじずぜぞ','za ji zu ze zo'],
+    ['だぢづでど','da ji zu de do'],['ばびぶべぼ','ba bi bu be bo'],['ぱぴぷぺぽ','pa pi pu pe po'],
+    ['ゃゅょっーぁぃぅぇぉ','ya yu yo xtsu – a i u e o']
+  ]) [...kana].forEach((ch,i)=>romanMap[ch]=latin.split(' ')[i]);
+  for(const ch of kanaSounds.glide){
+    const base=romanMap[ch[0]].slice(0,-1);
+    romanMap[ch]=base+(['sh','ch','j'].includes(base)?'':'y')+romanMap[ch[1]].slice(-1);
+  }
+  const tokenize=word=>word.match(/.[ゃゅょ]?/gu);
+  // Keep the two vowels separate at the boundary in 切符＋売り場.
+  const separateVowels={'きっぷうりば':[3]};
+  function pronunciation(word,script){
+    const tokens=tokenize(word), latin=[], long=[];
+    let offset=0;
+    for(const [i,ch] of tokens.entries()){
+      const prev=latin[i-1]?.slice(-1);
+      let sound=romanMap[ch];
+      const vowel=romanMap[ch];
+      const extendsVowel=ch==='ー'||(script==='hira'&&'あいうえお'.includes(ch)&&
+        !separateVowels[word]?.includes(offset)&&(prev===vowel||prev==='e'&&ch==='い'||prev==='o'&&ch==='う'));
+      if(extendsVowel){sound=prev;long.push(offset);}
+      if(ch==='っ'){const next=romanMap[tokens[i+1]]||'';sound=next.startsWith('ch')?'t':next[0]||'xtsu';}
+      latin.push(sound);offset+=ch.length;
+    }
+    return {tokens,latin,long};
+  }
   const fixedCounts={voiced:12,glide:13};
   const plain=[...CHAR_GROUPS.all], marked=[...kanaSounds.voiced,...kanaSounds.semi];
+  const allowed={...CHAR_GROUPS,st:CHAR_GROUPS.start20,nh:CHAR_GROUPS.start30,
+    my:CHAR_GROUPS.start30+CHAR_GROUPS.my,rw:CHAR_GROUPS.all.slice(0,-1),nasal:CHAR_GROUPS.all};
   function questions(group,script){
-    let entries=vocabulary[group];
-    if(!entries){
-      entries=['ak','st','nh','my','rw','review'].map(key=>vocabulary[key]).join(';');
-    }
-    if(script==='kata'&&group==='long')entries=vocabulary.kataLong;
-    if(script==='kata'&&group==='double')entries=vocabulary.kataDouble;
-    return entries.split(';').map(pair=>pair.split('|')).filter(([word])=>
-      !CHAR_GROUPS[group]||[...word].every(ch=>CHAR_GROUPS[group].includes(ch)));
+    const isKata=script==='kata';
+    return (isKata?katakanaWords:hiraganaWords).map(([word,hint])=>[toHira(word),hint]).filter(([word])=>{
+      const tokens=group==='glide'?tokenize(word):[...word];
+      if(tokens.length<(isKata?3:2)||tokens.length>7)return false;
+      const glide=/[ゃゅょ]/.test(word), doubled=word.includes('っ');
+      if(group==='glide')return glide;
+      if(group==='double')return doubled&&!glide;
+      if(group==='long'||group==='voiced'){
+        if(glide||doubled)return false;
+        const long=pronunciation(word,script).long.length>0;
+        if(group==='long')return long;
+        return !long&&tokens.some(ch=>marked.includes(ch))&&tokens.every(ch=>plain.includes(ch)||marked.includes(ch))&&tokens.filter(ch=>plain.includes(ch)).length<=6;
+      }
+      return tokens.every(ch=>allowed[group].includes(ch))&&tokens.some(ch=>CHAR_GROUPS[group].includes(ch));
+    });
   }
   function fill(required,pool,size){
     const result=[...required];
@@ -190,6 +748,15 @@
     return result;
   }
   const groupLabels=Array.from($('group').options,opt=>opt.textContent);
+  let labelScript=null;
+  function showGroupLabels(script){
+    if(labelScript===script)return;
+    labelScript=script;
+    Array.from($('group').options).forEach((opt,i)=>{
+      const label=script==='kata'?groupLabels[i].replace(/[あいうえおかさたなはまやらわん]/g,kata).replace(/・を|（を/g,m=>m.replace('を','ヲ')):groupLabels[i];
+      opt.textContent=label;
+    });
+  }
   function generate(group='ak',count=10,script=state?.script??'hira'){
     if(group==='semi')group='voiced';
     const options=questions(group,script);
@@ -222,12 +789,12 @@
       // Represent each requested sound family among the distractors as needed.
       for(const pool of group==='glide'?pools:[kanaSounds.voiced,kanaSounds.semi]){
         const side=group==='voiced'?target:other;
-        if(!side.some(ch=>pool.includes(ch)))side.push(shuffled(pool)[0]);
+        if(side.length<(group==='glide'?7:6)&&!side.some(ch=>pool.includes(ch)))side.push(shuffled(pool)[0]);
       }
       all=[...fill(target,complex,6),...fill(other,pools.flat(),fixedCounts[group]-6)];
     }else{
-      const pool=CHAR_GROUPS[group]?[...CHAR_GROUPS[group]]:[...plain,...marked];
-      all=fill(deck,pool,Math.min(count,CHAR_GROUPS[group]?pool.length:count));
+      const pool=allowed[group]?[...allowed[group]]:[...plain,...marked];
+      all=fill(deck,pool,count);
     }
     const slots=tokens.length;
     const cards={};
@@ -237,7 +804,7 @@
       if(swap>0)[deal[0],deal[swap]]=[deal[swap],deal[0]];
     }
     deal.forEach((ch,i)=>cards['c'+i]={ch:script==='kata'?kata(ch):ch,slot:i<slots?i+1:-1,flipped:false});
-    return {group,count,slots,script,hint,answer:script==='kata'?kata(word):word,cards,imageUrl:state?.imageUrl||'',version:3};
+    return {group,count,slots,script,hint,answer:script==='kata'?kata(word):word,cards,imageUrl:'',version:3};
   }
   function normalize(data){
     if(data.version===3)return data;
@@ -296,11 +863,29 @@
     }
     return sequence.every(Boolean)&&sequence.join('')===answer;
   }
+  function cardReadings(board){
+    const result={}, used=new Set();
+    const reading=pronunciation(toHira(board.answer||''),board.script);
+    const target=reading.tokens.map((ch,i)=>({ch,sound:reading.latin[i]}));
+    const cards=Object.entries(board.cards);
+    // Match placed kana first so interchangeable copies get the correct sound at each position.
+    for(const [id,c] of cards){
+      const i=c.slot-1;
+      if(target[i]?.ch===toHira(c.ch)){result[id]=target[i].sound;used.add(i);}
+    }
+    for(const [id,c] of cards){
+      if(id in result)continue;
+      const ch=toHira(c.ch), i=target.findIndex((t,n)=>t.ch===ch&&!used.has(n));
+      result[id]=i<0?romanMap[ch]:target[i].sound;
+      if(i>=0)used.add(i);
+    }
+    return result;
+  }
   function render(){
     if(!state)return;
     displayPicture(state.imageUrl||'');
     $('script').value=state.script||'hira';
-    Array.from($('group').options).forEach((opt,i)=>opt.textContent=state.script==='kata'?kata(groupLabels[i]):groupLabels[i]);
+    showGroupLabels(state.script||'hira');
     $('group').value=state.group==='semi'?'voiced':state.group;
     $('word-hint').textContent=state.hint||'';
     const fixed=state.hint&&fixedCounts[state.group];
@@ -308,8 +893,11 @@
     $('count').value=String(fixed||state.count);
     $('slots').value=String(state.slots);
     const cards=Object.entries(state.cards), sheet=$('sheet');
-    sheet.classList.toggle('correct',isCorrect(state));
-    $('score').textContent='テーブル '+cards.filter(([,c])=>!c.slot).length+' / '+cards.length;
+    const correct=isCorrect(state);
+    sheet.classList.toggle('correct',correct);
+    $('score').textContent=correct?'正解(せいかい / correct)！':'';
+    $('roman').setAttribute('aria-pressed',String(!!state.roman));
+    const readings=state.roman?cardReadings(state):{};
     if(sheet.children.length!==state.slots){
       sheet.replaceChildren();sheet.style.setProperty('--cols',Math.min(state.slots,5));
       for(let n=1;n<=state.slots;n++){
@@ -329,15 +917,17 @@
       const first=c.ch.normalize('NFD')[0];
       const rowIndex=rows.findIndex(row=>row.includes(first)||kata(row).includes(first));
       el.style.setProperty('--fill',colors[rowIndex]||colors[0]);
+      const glyph=c.flipped?'？':(readings[id]||c.ch);
       el.classList.toggle('multi',c.ch.length>1);
-      el.style.setProperty('--letters',c.flipped?1:c.ch.length);
+      el.classList.toggle('roman',!!state.roman&&!c.flipped);
+      el.style.setProperty('--letters',glyph.length);
       el.classList.toggle('flipped',!!c.flipped);
-      el.firstChild.textContent=c.flipped?'？':c.ch;
+      el.firstChild.textContent=glyph;
       const index=Number(id.slice(1))||0;
       el.style.setProperty('--dx',(index*7%17)+'px');
       el.style.setProperty('--dy',(index*11%25)+'px');
       el.style.setProperty('--tilt',(index*3%9-4)+'deg');
-      el.setAttribute('aria-label',(c.slot<0?'マスの外':c.slot===0?'テーブル':c.slot+'番のマス')+'、'+(c.flipped?'裏向き':c.ch));
+      el.setAttribute('aria-label',(c.slot<0?'マスの外':c.slot===0?'テーブル':c.slot+'番のマス')+'、'+(c.flipped?'裏向き':glyph));
       el.style.order=c.slot===-1?String(c.order??index):'';
       const parent=c.slot<0?$('outside'):c.slot===0?document.querySelector('.tray'):sheet.children[c.slot-1];
       if(el.parentNode!==parent)parent.append(el);
@@ -449,8 +1039,15 @@
     const st=clon(state), cards=Object.values(st.cards);
     shuffled(cards).forEach((c,i)=>c.slot=i<st.slots?i+1:-1);syncState(st);toast('カードをシャッフルしました');
   });
-  $('all-open').addEventListener('click',()=>{const st=clon(state);Object.values(st.cards).forEach(c=>c.flipped=false);syncState(st);});
-  $('all-hide').addEventListener('click',()=>{const st=clon(state);Object.values(st.cards).forEach(c=>c.flipped=true);syncState(st);});
+  function showFaces(roman){
+    editCards(data=>{
+      data.roman=roman&&!data.roman;
+      Object.values(data.cards).forEach(c=>c.flipped=false);
+      return true;
+    });
+  }
+  $('all-open').addEventListener('click',()=>showFaces(false));
+  $('roman').addEventListener('click',()=>showFaces(true));
   function setStatus(msg,isOnline){$('status').textContent=msg;$('status-dot').classList.toggle('online',!!isOnline);$('invite-btn').disabled=!isOnline;}
   function inviteUrl(){
     if(!roomId||!firebaseConfig)return '';
