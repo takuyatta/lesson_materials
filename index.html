@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#142541">
-  <title>ひらがな探偵｜オンライン共同カードゲーム</title>
+  <title>Hiragana Detective</title>
   <style>
     :root{--navy:#142541;--ink:#1c2c48;--muted:#687992;--blue:#2e67d1;--pale:#eef4ff;--paper:#fbfcff;--line:#dfe7f3;--green:#0f8b72;--rose:#e6a3b4}
     *{box-sizing:border-box}
@@ -66,66 +66,62 @@
 </head>
 <body>
 <header>
-  <div><h1>🔎 ひらがな探偵</h1><p>見つける・動かす・覚える｜先生と生徒で同じボード</p></div>
-  <div class="status"><span class="dot" id="status-dot"></span><span id="status">ローカル練習モード</span></div>
+  <div><h1>🔎 Hiragana Detective</h1></div>
+  <div class="status"><span class="dot" id="status-dot"></span><span id="status">Local practice</span></div>
 </header>
 <main>
   <div class="toolbar">
-    <label>文字の種類 <select id="script"><option value="hira">ひらがな</option><option value="kata">カタカナ</option></select></label>
-    <label>出題範囲
+    <label>Script <select id="script"><option value="hira">Hiragana</option><option value="kata">Katakana</option></select></label>
+    <label>Practice range
       <select id="group">
-        <option value="ak">あ行・か行を含む語</option>
-        <option value="st">さ行・た行を含む語</option>
-        <option value="nh">な行・は行を含む語</option>
-        <option value="my">ま行・や行を含む語</option>
-        <option value="rw">ら行・わ行（を含む）の語</option>
-        <option value="nasal">「ん」を含む語</option>
-        <option value="start20">復習｜あ〜た行を含む語</option>
-        <option value="start30">復習｜あ〜は行を含む語</option>
-        <option value="last21">復習｜は〜わ行・を・んを含む語</option>
-        <option value="all">総復習｜清音46文字</option>
-        <option value="voiced">濁音・半濁音</option>
-        <option value="glide">拗音</option>
-        <option value="long">長音</option>
-        <option value="double">促音</option>
+        <option value="ak">A and K rows</option>
+        <option value="st">S and T rows</option>
+        <option value="nh">N and H rows</option>
+        <option value="my">M and Y rows</option>
+        <option value="rw">R and W rows (including wo)</option>
+        <option value="nasal">Words containing syllabic n</option>
+        <option value="start20">Review: A through T rows</option>
+        <option value="start30">Review: A through H rows</option>
+        <option value="last21">Review: H through W rows, plus n</option>
+        <option value="all">Full review: 46 basic kana</option>
+        <option value="voiced">Voiced and semi-voiced sounds</option>
+        <option value="glide">Contracted sounds</option>
+        <option value="long">Long vowels</option>
+        <option value="double">Double consonants</option>
 
       </select>
     </label>
-    <label>カード枚数
-      <select id="count"><option value="8">8枚</option><option value="10" selected>10枚</option><option value="12">12枚</option><option value="13" hidden>13枚</option><option value="16">16枚</option><option value="20">20枚</option><option value="46">最大46枚</option></select>
+    <label>Cards
+      <select id="count"><option value="8">8</option><option value="10" selected>10</option><option value="12">12</option><option value="13" hidden>13</option><option value="16">16</option><option value="20">20</option><option value="46">Up to 46</option></select>
     </label>
-    <label>台紙のマス数 <select id="slots"><option value="1">1マス</option><option value="2">2マス</option><option value="3">3マス</option><option value="4">4マス</option><option value="5" selected>5マス</option><option value="6">6マス</option><option value="7">7マス</option></select></label>
-    <button id="shuffle" title="同じ文字をランダムに再配置">🔀 Shuffle cards</button>
-    <button id="all-open">🃏Kana</button>
-    <button id="roman" aria-pressed="false" lang="en">🃏Roman alphabet</button>
-    <button id="reset">Next word</button>
-    <div class="right"><button id="room-btn" class="dark">🌐 共同プレイ</button><button id="invite-btn" class="primary" disabled>招待URLをコピー</button></div>
-    <form id="picture-form">
+    <label>Answer slots <select id="slots"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option></select></label>
+    <button id="shuffle" title="Mix the cards for this word">🔀 Shuffle</button>
+    <button id="all-open">Show kana</button>
+    <button id="roman" aria-pressed="false" lang="en">Roman alphabet</button>
+    <button id="reset">New word</button>
+    <div class="right"><button id="room-btn" class="dark">🌐 Shared practice</button></div>
+    <form id="picture-form" lang="ja">
       <label for="picture-url">画像URL</label>
-      <input id="picture-url" type="url" placeholder="https://…" aria-label="単語の画像URL">
+      <input id="picture-url" type="url" placeholder="https://…" aria-label="Image URL">
       <button type="submit">画像を表示</button><button id="picture-clear" type="button">クリア</button>
     </form>
   </div>
   <div class="intro">
-    <div><strong>英語をヒントに、単語を作りましょう。</strong><p id="word-hint" lang="en" aria-live="polite"></p><small>マスの外も探してみましょう。カードはドラッグで移動でき、別のカードがあるマスに置くと入れ替わります。ダブルクリック／ダブルタップで裏返せます。</small></div>
+    <div><strong>Build the Japanese word from the English clue.</strong><p id="word-hint" lang="en" aria-live="polite"></p></div>
     <div class="word-picture" id="picture" aria-live="polite"><span>単語の画像</span></div>
     <div class="score" id="score" role="status" aria-live="polite"></div>
   </div>
-  <div class="board-scroll"><div id="board"><div class="play-area"><div id="sheet" aria-label="番号付きの台紙"></div><div id="outside" data-slot="-1" role="group" aria-label="マスの外"></div></div><div id="found-zone"><div class="zone-title">テーブル</div><div class="tray"></div></div></div></div>
-  <div class="help">
-    <div class="panel"><strong>🎲 ゲームの進め方</strong><p>英語の意味に合うカードを探し、1番のマスから順に並べます。「カード全交換」で次の問題に進めます。</p><p class="hint">応用：「文字を裏返す」「先生がわざと間違える」「単語になるように並べる」などにも使えます。</p></div>
-  </div>
-  <p class="notice">※ 教材の清音46文字を元にした独立した試作アプリです。URLを知っている人は共同編集できる設計です。個人情報や授業記録を入力・保存しないでください。</p>
+  <div class="board-scroll"><div id="board"><div class="play-area"><div id="sheet" aria-label="Numbered answer slots"></div><div id="outside" data-slot="-1" role="group" aria-label="Loose cards"></div></div><div id="found-zone"><div class="zone-title">Table</div><div class="tray"></div></div></div></div>
 </main>
 <dialog id="room-modal">
-  <div class="modal-header"><h2>🌐 共同プレイの準備</h2><p>Firebaseを1回設定すると、先生と生徒が同じカードを操作できます。</p></div>
+  <div class="modal-header"><h2>Shared practice setup</h2><p>Set up Firebase once to let a teacher and student move cards on the same board.</p></div>
   <div class="modal-body">
-    <p><strong>① FirebaseのWebアプリ設定（JSON）を貼り付ける</strong><br>FirebaseコンソールでWebアプリを追加し、表示される <code>firebaseConfig</code> の中身を貼ります。<code>databaseURL</code> が必要です。詳しくは同梱の「はじめに.txt」を参照してください。</p>
+    <p><strong>Paste your Firebase web app configuration (JSON)</strong><br>Add a web app in the Firebase console, then paste its <code>firebaseConfig</code> object here. Include the <code>databaseURL</code> field.</p>
     <textarea id="config-input" placeholder='{"apiKey":"...","authDomain":"...firebaseapp.com","databaseURL":"https://...firebasedatabase.app","projectId":"...","appId":"..."}' spellcheck="false"></textarea>
-    <p class="hint">設定値はブラウザ内に保存され、招待URLにも含まれます。FirebaseのWeb設定値は秘密鍵ではありませんが、アクセス権はFirebaseのセキュリティルールで必ず制限してください。</p>
+    <p class="hint">The configuration is saved in this browser and included in the room link. Use Firebase security rules to control access.</p>
     <p id="room-error" class="error" aria-live="polite"></p>
     <div id="invitebox"></div>
-    <div class="modal-actions"><button id="close-modal">閉じる</button><button id="save-config">設定を保存</button><button id="create-room" class="primary">新しい共有ルームを作成</button></div>
+    <div class="modal-actions"><button id="close-modal">Close</button><button id="save-config">Save settings</button><button id="create-room" class="primary">Create shared room</button></div>
   </div>
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -747,16 +743,6 @@
     while(result.length<size)result.push(pool[Math.floor(Math.random()*pool.length)]);
     return result;
   }
-  const groupLabels=Array.from($('group').options,opt=>opt.textContent);
-  let labelScript=null;
-  function showGroupLabels(script){
-    if(labelScript===script)return;
-    labelScript=script;
-    Array.from($('group').options).forEach((opt,i)=>{
-      const label=script==='kata'?groupLabels[i].replace(/[あいうえおかさたなはまやらわん]/g,kata).replace(/・を|（を/g,m=>m.replace('を','ヲ')):groupLabels[i];
-      opt.textContent=label;
-    });
-  }
   function generate(group='ak',count=10,script=state?.script??'hira'){
     if(group==='semi')group='voiced';
     const options=questions(group,script);
@@ -799,11 +785,7 @@
     const slots=tokens.length;
     const cards={};
     const deal=shuffled(all);
-    if(tokens.every((ch,i)=>deal[i]===ch)){
-      const swap=deal.findIndex(ch=>ch!==deal[0]);
-      if(swap>0)[deal[0],deal[swap]]=[deal[swap],deal[0]];
-    }
-    deal.forEach((ch,i)=>cards['c'+i]={ch:script==='kata'?kata(ch):ch,slot:i<slots?i+1:-1,flipped:false});
+    deal.forEach((ch,i)=>cards['c'+i]={ch:script==='kata'?kata(ch):ch,slot:-1,flipped:false});
     return {group,count,slots,script,hint,answer:script==='kata'?kata(word):word,cards,imageUrl:'',version:3};
   }
   function normalize(data){
@@ -831,16 +813,16 @@
     if(!url){frame.textContent='単語の画像';return;}
     const img=new Image();
     img.referrerPolicy='no-referrer';
-    img.alt='単語のイメージ画像';
-    frame.textContent='読み込み中…';
+    img.alt='Picture clue';
+    frame.textContent='Loading…';
     img.onload=()=>{if(shownUrl===raw)frame.replaceChildren(img);};
-    img.onerror=()=>{if(shownUrl===raw)frame.textContent='画像を表示できません。画像のURLを確認してください。';};
+    img.onerror=()=>{if(shownUrl===raw)frame.textContent='Could not load the image. Check the image URL.';};
     img.src=url;
   }
   $('picture-form').addEventListener('submit',e=>{
     e.preventDefault();
     const url=imageAddress($('picture-url').value.trim());
-    if(!url){toast('http または https の画像URLを入力してください');return;}
+    if(!url){toast('Enter an image URL starting with http or https.');return;}
     if(url===shownUrl){shownUrl=null;displayPicture(url);return;}
     editCards(data=>{data.imageUrl=url;return true;});
   });
@@ -885,7 +867,6 @@
     if(!state)return;
     displayPicture(state.imageUrl||'');
     $('script').value=state.script||'hira';
-    showGroupLabels(state.script||'hira');
     $('group').value=state.group==='semi'?'voiced':state.group;
     $('word-hint').textContent=state.hint||'';
     const fixed=state.hint&&fixedCounts[state.group];
@@ -895,14 +876,14 @@
     const cards=Object.entries(state.cards), sheet=$('sheet');
     const correct=isCorrect(state);
     sheet.classList.toggle('correct',correct);
-    $('score').textContent=correct?'正解(せいかい / correct)！':'';
+    $('score').textContent=correct?'Correct!':'';
     $('roman').setAttribute('aria-pressed',String(!!state.roman));
     const readings=state.roman?cardReadings(state):{};
     if(sheet.children.length!==state.slots){
       sheet.replaceChildren();sheet.style.setProperty('--cols',Math.min(state.slots,5));
       for(let n=1;n<=state.slots;n++){
         const cell=document.createElement('div');cell.className='slot';cell.dataset.slot=n;
-        const label=document.createElement('span');label.className='number';label.textContent=n+'番';
+        const label=document.createElement('span');label.className='number';label.textContent=String(n);
         cell.append(label);sheet.append(cell);
       }
     }
@@ -911,38 +892,36 @@
       let el=cardsNodes.get(id);
       if(!el){
         el=document.createElement('button');el.className='card';el.innerHTML='<span class="glyph"></span>';
-        el.dataset.card=id;el.onpointerdown=e=>startDrag(e,id);el.onclick=e=>{if(e.detail===0)flip(id);};
+        el.dataset.card=id;el.onpointerdown=e=>startDrag(e,id);
         cardsNodes.set(id,el);
       }
       const first=c.ch.normalize('NFD')[0];
       const rowIndex=rows.findIndex(row=>row.includes(first)||kata(row).includes(first));
       el.style.setProperty('--fill',colors[rowIndex]||colors[0]);
-      const glyph=c.flipped?'？':(readings[id]||c.ch);
+      const glyph=readings[id]||c.ch;
       el.classList.toggle('multi',c.ch.length>1);
-      el.classList.toggle('roman',!!state.roman&&!c.flipped);
+      el.classList.toggle('roman',!!state.roman);
       el.style.setProperty('--letters',glyph.length);
-      el.classList.toggle('flipped',!!c.flipped);
       el.firstChild.textContent=glyph;
       const index=Number(id.slice(1))||0;
       el.style.setProperty('--dx',(index*7%17)+'px');
       el.style.setProperty('--dy',(index*11%25)+'px');
       el.style.setProperty('--tilt',(index*3%9-4)+'deg');
-      el.setAttribute('aria-label',(c.slot<0?'マスの外':c.slot===0?'テーブル':c.slot+'番のマス')+'、'+(c.flipped?'裏向き':glyph));
+      el.setAttribute('aria-label',(c.slot<0?'Outside the slots':c.slot===0?'Table':'Slot '+c.slot)+', '+glyph);
       el.style.order=c.slot===-1?String(c.order??index):'';
       const parent=c.slot<0?$('outside'):c.slot===0?document.querySelector('.tray'):sheet.children[c.slot-1];
       if(el.parentNode!==parent)parent.append(el);
     }
   }
   function localSet(data){state=normalize(data);render();}
-  async function syncState(data){localSet(data);if(db&&roomId&&dbOps){try{await dbOps.set(dbOps.ref(db,'rooms/'+roomId),data);}catch(e){toast('保存できません：'+e.message);}}}
+  async function syncState(data){localSet(data);if(db&&roomId&&dbOps){try{await dbOps.set(dbOps.ref(db,'rooms/'+roomId),data);}catch(e){toast('Could not save: '+e.message);}}}
   async function editCards(change){
     if(!roomId||!dbOps){change(state);render();return;}
     try{await dbOps.runTransaction(dbOps.ref(db,'rooms/'+roomId),data=>{
       if(!data)return;
       data=normalize(data);return change(data)?data:undefined;
-    });}catch(e){toast('通信エラー：'+e.message);}
+    });}catch(e){toast('Connection error: '+e.message);}
   }
-  function flip(id){editCards(data=>{const c=data.cards[id];if(!c)return false;c.flipped=!c.flipped;return true;});}
   function moveCard(id,from,ch,to,before=null){
     editCards(data=>{
       const c=data.cards[id];
@@ -960,7 +939,6 @@
       return true;
     });
   }
-  let lastTap=null;
   function startDrag(e,id){
     if(localDrag||e.button!==0)return;
     const el=e.currentTarget, c=state.cards[id], from=c.slot, ch=c.ch;
@@ -1004,16 +982,14 @@
       listeners.abort();localDrag=null;
       if(board.hasPointerCapture(pointer))board.releasePointerCapture(pointer);
       target?.classList.remove('target');ghost?.remove();el.classList.remove('drag-source');
-      if(ev.type!=='pointerup'){lastTap=null;return;}
+      if(ev.type!=='pointerup')return;
       if(dragged){
-        lastTap=null;
         const dest=hit(ev);
         if(dest){
           const before=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.card')?.dataset.card;
           moveCard(id,from,ch,Number(dest.dataset.slot||0),before);
         }
-      }else if(lastTap?.id===id&&Date.now()-lastTap.time<350){lastTap=null;flip(id);}
-      else lastTap={id,time:Date.now()};
+      }
     }
     window.addEventListener('pointermove',move,options);
     for(const event of ['pointerup','pointercancel','blur'])window.addEventListener(event,end,options);
@@ -1024,20 +1000,18 @@
   $('slots').addEventListener('change',e=>{
     const slots=Number(e.target.value);
     editCards(data=>{
-      const previous=data.slots, cards=Object.values(data.cards);
+      const cards=Object.values(data.cards);
       for(const card of cards)if(card.slot>slots)card.slot=-1;
-      const outside=cards.filter(card=>card.slot===-1);
-      for(let n=previous+1;n<=slots&&outside.length;n++)outside.shift().slot=n;
       data.slots=slots;
       return true;
     });
   });
   $('group').addEventListener('change',e=>syncState(generate(e.target.value,state.count)));
   $('count').addEventListener('change',e=>syncState(generate($('group').value,+e.target.value)));
-  $('reset').addEventListener('click',()=>{syncState(generate(state.group,state.count));toast('新しいゲームを準備しました');});
+  $('reset').addEventListener('click',()=>{syncState(generate(state.group,state.count));toast('New word ready.');});
   $('shuffle').addEventListener('click',()=>{
     const st=clon(state), cards=Object.values(st.cards);
-    shuffled(cards).forEach((c,i)=>c.slot=i<st.slots?i+1:-1);syncState(st);toast('カードをシャッフルしました');
+    shuffled(cards).forEach((c,i)=>{c.slot=-1;c.order=i;});syncState(st);toast('Cards shuffled.');
   });
   function showFaces(roman){
     editCards(data=>{
@@ -1048,16 +1022,11 @@
   }
   $('all-open').addEventListener('click',()=>showFaces(false));
   $('roman').addEventListener('click',()=>showFaces(true));
-  function setStatus(msg,isOnline){$('status').textContent=msg;$('status-dot').classList.toggle('online',!!isOnline);$('invite-btn').disabled=!isOnline;}
+  function setStatus(msg,isOnline){$('status').textContent=msg;$('status-dot').classList.toggle('online',!!isOnline);}
   function inviteUrl(){
     if(!roomId||!firebaseConfig)return '';
     const url=new URL(location.href);url.hash='room='+roomId+'&cfg='+b64enc(firebaseConfig);return url.href;
   }
-  async function copyInvite(){const url=inviteUrl();if(!url){toast('先に共有ルームを作成してください');return;}
-    try{await navigator.clipboard.writeText(url);toast('招待URLをコピーしました');}
-    catch{const box=$('invitebox');box.style.display='block';box.textContent=url;$('room-modal').showModal();toast('URLを選択してコピーしてください');}
-  }
-  $('invite-btn').addEventListener('click',copyInvite);
   $('room-btn').addEventListener('click',()=>{if(firebaseConfig)$('config-input').value=JSON.stringify(firebaseConfig,null,2);$('room-modal').showModal();});
   $('close-modal').addEventListener('click',()=>$('room-modal').close());
   function parseConfig(){
@@ -1066,12 +1035,12 @@
     if(s.startsWith('const firebaseConfig')){const m=s.match(/\{[\s\S]*?\}/);if(m)s=m[0];}
     s=s.replace(/([{,]\s*)([A-Za-z_$][\w$]*)(\s*:)/g,'$1"$2"$3').replace(/,\s*}/g,'}');
     let config;
-    try{config=JSON.parse(s);}catch{throw Error('正しいJSONを貼り付けてください（キーと値は二重引用符で囲みます）。');}
-    if(!config.apiKey||!config.authDomain||!config.databaseURL||!config.projectId||!config.appId)throw Error('apiKey / authDomain / databaseURL / projectId / appId が必要です。');
+    try{config=JSON.parse(s);}catch{throw Error('Enter valid JSON with double quotes around keys and string values.');}
+    if(!config.apiKey||!config.authDomain||!config.databaseURL||!config.projectId||!config.appId)throw Error('Required fields: apiKey, authDomain, databaseURL, projectId and appId.');
     return config;
   }
   $('save-config').addEventListener('click',()=>{
-    try{firebaseConfig=parseConfig();localStorage.setItem('hd_firebase_config',JSON.stringify(firebaseConfig));$('room-error').textContent='';toast('設定を保存しました。次は共有ルームを作成してください。');}
+    try{firebaseConfig=parseConfig();localStorage.setItem('hd_firebase_config',JSON.stringify(firebaseConfig));$('room-error').textContent='';toast('Settings saved. You can now create a shared room.');}
     catch(e){$('room-error').textContent=e.message;}
   });
   $('create-room').addEventListener('click',async()=>{
@@ -1079,8 +1048,8 @@
       firebaseConfig=parseConfig();localStorage.setItem('hd_firebase_config',JSON.stringify(firebaseConfig));$('room-error').textContent='';
       const newRoomId=safeRandomId();$('create-room').disabled=true;await joinRoom(newRoomId,firebaseConfig,true);
       const link=inviteUrl();$('invitebox').style.display='block';$('invitebox').textContent=link;
-      toast('共有ルームを作成しました！招待URLを送れます');
-    }catch(e){$('room-error').textContent=e.message;setStatus('接続できません（ローカル）',false);}finally{$('create-room').disabled=false;}
+      toast('Room created. Share the address in your browser to invite a student.');
+    }catch(e){$('room-error').textContent=e.message;setStatus('Offline · Local practice',false);}finally{$('create-room').disabled=false;}
   });
   async function firebaseSDK(){
     // Firebase is loaded only for online mode; offline preview needs no external requests.
@@ -1089,8 +1058,8 @@
     return {app:a,auth:b,db:c};
   }
   async function joinRoom(id,config,create){
-    if(!/^[a-f0-9]{36}$/.test(id))throw Error('招待URLのルームIDが不正です。');
-    setStatus('接続中…',false);
+    if(!/^[a-f0-9]{36}$/.test(id))throw Error('This room link contains an invalid room ID.');
+    setStatus('Connecting…',false);
     const sdk=await firebaseSDK();
     if(unsubscribe){unsubscribe();unsubscribe=null;}
     // Reinitialize only when app config changes.
@@ -1104,16 +1073,16 @@
     const roomRef=sdk.db.ref(db,`rooms/${id}`);
     const current=await sdk.db.get(roomRef);
     if(!current.exists()){
-      if(!create)throw Error('ルームが存在しません。先生に新しい招待URLを送ってもらってください。');
+      if(!create)throw Error('Room not found. Ask your teacher for a new room link.');
       await sdk.db.set(roomRef, state||generate());
     }
     unsubscribe=sdk.db.onValue(roomRef,snapshot=>{
       if(snapshot.exists()&&snapshot.val()?.cards){
-        localSet(snapshot.val());setStatus('共同プレイ中',true);
+        localSet(snapshot.val());setStatus('Shared practice',true);
       }
-    },error=>{setStatus('通信エラー',false);toast(error.message)});
+    },error=>{setStatus('Connection error',false);toast(error.message)});
     history.replaceState(null,'',location.pathname+location.search+'#room='+id+'&cfg='+b64enc(config));
-    setStatus('共同プレイ中',true);
+    setStatus('Shared practice',true);
     $('room-modal').close();
   }
   async function startup(){
@@ -1122,8 +1091,8 @@
     try{
       const frag=new URLSearchParams(location.hash.slice(1));
       const id=frag.get('room'),configParam=frag.get('cfg');
-      if(id&&configParam){const config=b64dec(configParam);firebaseConfig=config;await joinRoom(id,config,false);toast('共有ルームに参加しました！');}
-    }catch(e){setStatus('ローカル練習モード',false);toast('接続失敗：'+e.message);console.error(e);}
+      if(id&&configParam){const config=b64dec(configParam);firebaseConfig=config;await joinRoom(id,config,false);toast('You joined the room.');}
+    }catch(e){setStatus('Local practice',false);toast('Could not connect: '+e.message);console.error(e);}
   }
   startup();
 </script>
